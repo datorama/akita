@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MoviesStore } from './movies.store';
-import { ID, transaction, withTransaction, arrayRemove } from '@datorama/akita';
+import { ID, transaction, withTransaction, arrayRemove, logAction, action } from '@datorama/akita';
 import { of, timer } from 'rxjs';
 import { mapTo } from 'rxjs/operators';
 import { movies } from '../normalized';
@@ -15,12 +15,12 @@ export class MoviesService {
   getMovies() {
     const request$ = timer(1000).pipe(
       mapTo(movies),
-      withTransaction(response => {
+      withTransaction((response) => {
         this.actorsStore.set(response.entities.actors);
         this.genresStore.set(response.entities.genres);
         const movies = {
           entities: response.entities.movies,
-          ids: response.result
+          ids: response.result,
         };
         this.moviesStore.set(movies);
       })
@@ -29,17 +29,20 @@ export class MoviesService {
     return this.moviesQuery.getHasCache() ? of() : request$;
   }
 
+  @action('custom update actor name')
   updateActorName(id: ID, name: string) {
     this.actorsStore.update(id, { name });
   }
 
+  @action('custom mark as open', { payload: { custom: 'payload' } })
   markAsOpen(id: ID) {
-    this.moviesStore.ui.update(id, entity => ({ isOpen: !entity.isOpen }));
+    this.moviesStore.ui.update(id, (entity) => ({ isOpen: !entity.isOpen }));
   }
 
   @transaction()
   deleteActor(id: ID) {
+    logAction('custom remove actors', id, { custom: 'payload' });
     this.actorsStore.remove(id);
-    this.moviesStore.update(null, entity => ({ actors: arrayRemove(entity.actors, id) }));
+    this.moviesStore.update(null, (entity) => ({ actors: arrayRemove(entity.actors, id) }));
   }
 }

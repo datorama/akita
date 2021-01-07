@@ -168,6 +168,17 @@ describe('DevTools', () => {
     expect(connectMock.send.mock.calls[0][0]['type']).toEqual(expect.stringContaining(buildActionTypeString(store, `@Transaction`)));
   });
 
+  it(`should log custom action and payload`, () => {
+    store.add([{ id: 1 }]);
+    connectMock.send.mockReset();
+
+    logAction('Custom action w/ custom payload', 1, { title: 'title' });
+    store.update(1, { title: 'title' });
+
+    expect(connectMock.send.mock.calls[0][0]['type']).toEqual(expect.stringContaining(buildActionTypeString(store, `Custom action w/ custom payload`)));
+    expect(connectMock.send.mock.calls[0][0]['payload']).toEqual(expect.objectContaining({ title: 'title' }));
+  });
+
   it(`should only log custom action of a transaction`, () => {
     store.add([{ id: 1 }, { id: 2 }]);
     connectMock.send.mockReset();
