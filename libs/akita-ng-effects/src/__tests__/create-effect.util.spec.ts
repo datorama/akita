@@ -10,14 +10,16 @@ describe('Create effect utility', () => {
     expect(effect).toHaveProperty('name');
   });
 
-  it('should emit a value upon subscription', (done) => {
-    createEffect(() =>
-      of('sample').pipe(
-        tap((val) => {
-          expect(val).toBe('sample');
-          done();
-        })
-      )
-    ).subscribe();
+  it('should emit a value upon subscription', () => {
+    return new Promise<void>((done) => {
+      createEffect(() =>
+        of('sample').pipe(
+          tap((val) => {
+            expect(val).toBe('sample');
+            done();
+          })
+        )
+      ).subscribe();
+    });
   });
 });

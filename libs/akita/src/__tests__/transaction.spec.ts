@@ -1,13 +1,14 @@
-import { applyTransaction, transaction } from '../lib/transaction';
 import { Subscription } from 'rxjs';
-import { Todo, TodosStore } from './setup';
 import { QueryEntity } from '../lib/queryEntity';
+import { applyTransaction, transaction } from '../lib/transaction';
+import { Todo, TodosStore } from './setup';
 
-let store = new TodosStore();
+const store = new TodosStore();
 const query = new QueryEntity(store);
 
 describe('Transactions', () => {
-  let observer, subscription: Subscription;
+  let observer;
+  let subscription: Subscription;
 
   beforeEach(() => {
     observer = jest.fn();
@@ -38,7 +39,7 @@ describe('Transactions', () => {
 
     class Service {
       @transaction()
-      add() {
+      add(): void {
         store.add(new Todo({ id: 5, title: '5' }));
         store.add(new Todo({ id: 6, title: '6' }));
         store.add(new Todo({ id: 7, title: '7' }));

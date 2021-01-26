@@ -1,6 +1,5 @@
-import { createMockEntities, entitiesMapMock } from './mocks';
-import { addEntities } from '../lib/addEntities';
 import { BooksStore } from './booksStore';
+import { createMockEntities, entitiesMapMock } from './mocks';
 
 describe('addEntities', () => {
   it('should do nothing if the collection is empty', () => {
@@ -47,6 +46,7 @@ describe('addEntities', () => {
     store.add(createMockEntities());
     store.add(createMockEntities(10, 12), { prepend: true });
     expect(store._value().ids).toEqual([12, 11, 1, 2]);
+    // eslint-disable-next-line no-restricted-syntax
     for (const id of [12, 11, 1, 2]) {
       expect(store._value().entities[id]).toBeDefined();
     }

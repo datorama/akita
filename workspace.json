@@ -57,8 +57,10 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:lint",
           "options": {
+            "linter": "eslint",
+            "config": "libs/akita-ng-entity-service/.eslintrc",
             "tsConfig": ["libs/akita-ng-entity-service/tsconfig.lib.json", "libs/akita-ng-entity-service/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!libs/akita-ng-entity-service/**/*"]
           }
@@ -185,8 +187,10 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:lint",
           "options": {
+            "linter": "eslint",
+            "config": "libs/akita-ng-router-store/.eslintrc",
             "tsConfig": ["libs/akita-ng-router-store/tsconfig.lib.json", "libs/akita-ng-router-store/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!libs/akita-ng-router-store/**/*"]
           }
@@ -222,8 +226,10 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:lint",
           "options": {
+            "linter": "eslint",
+            "config": "libs/akita-ng-devtools/.eslintrc",
             "tsConfig": ["libs/akita-ng-devtools/tsconfig.lib.json", "libs/akita-ng-devtools/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!libs/akita-ng-devtools/**/*"]
           }
@@ -259,8 +265,10 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:lint",
           "options": {
+            "linter": "eslint",
+            "config": "libs/akita-ng-forms-manager/.eslintrc",
             "tsConfig": ["libs/akita-ng-forms-manager/tsconfig.lib.json", "libs/akita-ng-forms-manager/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!libs/akita-ng-forms-manager/**/*"]
           }
@@ -312,8 +320,10 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@nrwl/linter:lint",
           "options": {
+            "linter": "eslint",
+            "config": "libs/akita-ng-effects/.eslintrc",
             "tsConfig": ["libs/akita-ng-effects/tsconfig.lib.json", "libs/akita-ng-effects/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!libs/akita-ng-effects/**/*"]
           }

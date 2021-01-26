@@ -1,9 +1,9 @@
 import { EntityStore } from '../lib/entityStore';
-import { StoreConfig } from '../lib/storeConfig';
 import { QueryEntity } from '../lib/queryEntity';
-import { ID, EntityState } from '../lib/types';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
-interface TodosState extends EntityState<Todo> {}
+type TodosState = EntityState<Todo>;
 
 type Todo = {
   id: ID;
@@ -12,13 +12,9 @@ type Todo = {
 };
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
-class TodosStore extends EntityStore<TodosState, Todo> {
-  constructor() {
-    super();
-  }
-}
+class TodosStore extends EntityStore<TodosState, Todo> {}
 
 class TodosQuery extends QueryEntity<TodosState, Todo> {
   constructor(protected store: TodosStore) {
@@ -26,10 +22,10 @@ class TodosQuery extends QueryEntity<TodosState, Todo> {
   }
 }
 
-const store = new TodosStore();
-const query = new TodosQuery(store);
-
 describe('Entity Query', () => {
+  const store = new TodosStore();
+  const query = new TodosQuery(store);
+
   describe('selectLast', () => {
     it('should work', () => {
       const spy = jest.fn();
@@ -90,11 +86,9 @@ describe('Entity Query', () => {
     });
   });
 
-  describe('with projection', () => {
-    const store = new TodosStore();
-    const query = new TodosQuery(store);
+  it('with projection', () => {
     const spy = jest.fn();
-    query.selectLast(entity => entity.title).subscribe(spy);
+    query.selectLast((entity) => entity.title).subscribe(spy);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(undefined);
     store.add({ id: 1, title: 'a' });

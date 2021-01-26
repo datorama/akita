@@ -11,7 +11,8 @@ describe('Utils', () => {
     });
 
     it('should return false when passing function', () => {
-      expect(isPlainObject(function() {})).toBeFalsy();
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      expect(isPlainObject(() => {})).toBeFalsy();
     });
   });
 });

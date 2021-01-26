@@ -16,7 +16,7 @@ const intentionalTestError = new Error('Intentional test error.');
 
 @Injectable()
 class AuthGuard implements CanActivate {
-  constructor(private router: Router) {}
+  constructor(private readonly router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot) {
     if (route.url.toString().includes('throw-error')) {
@@ -58,7 +58,7 @@ describe('RouterService', () => {
   let router: Router;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
+    void TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes(routes), AkitaNgRouterStoreModule],
       declarations: [EmptyComponent],
       providers: [AuthGuard, { provide: APP_BASE_HREF, useValue: '/' }],
@@ -68,7 +68,7 @@ describe('RouterService', () => {
     ngZone = TestBed.get(NgZone);
     router = TestBed.get(Router);
 
-    navigateByUrl('start');
+    void navigateByUrl('start');
   });
 
   function navigateByUrl(url: string, navigationExtras?: NavigationExtras) {
@@ -131,13 +131,15 @@ describe('RouterService', () => {
 
     routerQuery.select().subscribe(({ navigationId, state }) => {
       if (navigationId === 2) {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(state).toEqual({ data: {}, fragment: null, navigationExtras: undefined, params: {}, queryParams: {}, url: '/start', urlAfterRedirects: '/start' });
       } else if (navigationId === 3) {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(state).toEqual({ data: {}, fragment: null, navigationExtras: undefined, params: {}, queryParams: {}, url: '/home', urlAfterRedirects: '/home' });
       }
     });
 
-    navigateByUrl('/redirect-home');
+    void navigateByUrl('/redirect-home');
     tick();
   }));
 

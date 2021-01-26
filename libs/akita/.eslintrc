@@ -1,1 +1,18 @@
-{ "extends": "../../.eslintrc", "rules": {}, "ignorePatterns": ["!**/*"] }
+{
+  "extends": "../../.eslintrc",
+  "rules": {},
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["**/__tests__/*.ts"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "off", // TODO turn on - this is a HUGE task!
+        "@typescript-eslint/unbound-method": "off", // false positive for stuff like expect(obj.someFn).not.toHaveBeenCalled();
+        "class-methods-use-this": "off",
+        "func-names": "off",
+        "max-classes-per-file": "off"
+      }
+    }
+  ]
+}

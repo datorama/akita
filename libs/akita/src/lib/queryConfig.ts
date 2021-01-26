@@ -7,16 +7,15 @@ export interface SortByOptions<E> {
   sortByOrder?: Order;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface QueryConfigOptions<E = any> extends SortByOptions<E> {}
 
 export const queryConfigKey = 'akitaQueryConfig';
 
 export function QueryConfig<E>(metadata: QueryConfigOptions<E>) {
-  return function(constructor: Function) {
-    constructor[queryConfigKey] = {};
-    for (let i = 0, keys = Object.keys(metadata); i < keys.length; i++) {
-      const key = keys[i];
-      constructor[queryConfigKey][key] = metadata[key];
-    }
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return (constructor: Function): void => {
+    // eslint-disable-next-line no-param-reassign
+    constructor[queryConfigKey] = { ...metadata };
   };
 }

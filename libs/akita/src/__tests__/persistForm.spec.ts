@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
-import { PersistNgFormPlugin } from '../lib/plugins/persistForm/persistNgFormPlugin';
 import { EntityStore, QueryEntity, StoreConfig } from '../lib/index';
+import { FormGroupLike, PersistNgFormPlugin } from '../lib/plugins/persistForm/persistNgFormPlugin';
 
 jest.useFakeTimers();
 
@@ -16,46 +16,51 @@ function createStory() {
     title: '',
     story: '',
     draft: false,
-    category: 'js'
+    category: 'js',
   } as Story;
 }
 
-const formFactory = () => ({
-  _changes: new Subject(),
-  value: undefined,
-  setValue(v) {
-    this._changes.next(v);
-    this.value = v;
-  },
-  patchValue(v) {
-    this._changes.next(v);
-    this.value = v;
-  },
-  get valueChanges() {
-    return this._changes.asObservable();
-  }
-});
+const formFactory = (): FormGroupLike => {
+  const _changes = new Subject();
+
+  return {
+    value: undefined,
+    setValue(v) {
+      _changes.next(v);
+      this.value = v;
+    },
+    patchValue(v) {
+      _changes.next(v);
+      this.value = v;
+    },
+    get valueChanges() {
+      return _changes.asObservable();
+    },
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    get: () => {},
+    controls: '',
+  };
+};
 
 const formGroupA = formFactory();
 const formGroupB = formFactory();
 
-@StoreConfig({ name: 'stories' })
-class StoriesStore extends EntityStore<any, any> {
-  constructor() {
-    super({ config: { time: '', isAdmin: false } });
-  }
-}
-
-export class StoriesQuery extends QueryEntity<any, Story> {
-  constructor(protected store) {
-    super(store);
-  }
-}
-
-const store = new StoriesStore();
-const query = new StoriesQuery(store);
-
 describe('PersistForm', () => {
+  @StoreConfig({ name: 'stories' })
+  class StoriesStore extends EntityStore<any, any> {
+    constructor() {
+      super({ config: { time: '', isAdmin: false } });
+    }
+  }
+
+  class StoriesQuery extends QueryEntity<any, Story> {
+    constructor(protected store) {
+      super(store);
+    }
+  }
+
+  const store = new StoriesStore();
+  const query = new StoriesQuery(store);
   const customFormKey = 'customFormKey';
   const persistForm = new PersistNgFormPlugin(query, createStory).setForm(formGroupA); // default formKey
   const persistFormWithCustomKey = new PersistNgFormPlugin(query, createStory, { formKey: customFormKey }).setForm(formGroupB);
@@ -70,7 +75,7 @@ describe('PersistForm', () => {
       title: 'test',
       story: 'test',
       draft: true,
-      category: 'rx'
+      category: 'rx',
     };
 
     formGroupA.patchValue(patch);
@@ -94,6 +99,21 @@ describe('PersistForm', () => {
 });
 
 describe('PersistForm - key based', () => {
+  @StoreConfig({ name: 'stories' })
+  class StoriesStore extends EntityStore<any, any> {
+    constructor() {
+      super({ config: { time: '', isAdmin: false } });
+    }
+  }
+
+  class StoriesQuery extends QueryEntity<any, Story> {
+    constructor(protected store) {
+      super(store);
+    }
+  }
+
+  const store = new StoriesStore();
+  const query = new StoriesQuery(store);
   const formGroup = formFactory();
 
   const persistForm = new PersistNgFormPlugin(query, 'config').setForm(formGroup);
@@ -105,7 +125,7 @@ describe('PersistForm - key based', () => {
   it('should persist the store with the form', () => {
     const patch = {
       time: 'time',
-      isAdmin: true
+      isAdmin: true,
     };
 
     formGroup.patchValue(patch);
@@ -143,12 +163,12 @@ describe('PersistForm - key based nested key', () => {
 
   const formGroup = formFactory();
 
-  const persistForm = new PersistNgFormPlugin(query, 'config.form').setForm(formGroup);
+  new PersistNgFormPlugin(query, 'config.form').setForm(formGroup);
 
   it('should persist only present in the form value properties', () => {
     const patch = {
       name: 'Ivan',
-      isAdmin: true
+      isAdmin: true,
     };
 
     formGroup.patchValue(patch);
@@ -189,7 +209,7 @@ describe('PersistForm - root key', () => {
 
   it('should persist the store with the form', () => {
     const patch = {
-      someBoolean: false
+      someBoolean: false,
     };
 
     formGroup.patchValue(patch);
@@ -230,7 +250,7 @@ describe('PersistForm - support rool level arrays', () => {
   const formGroup = formFactory();
   // simulate controls
   formGroup.patchValue({ skills: [] });
-  new PersistNgFormPlugin(query).setForm(formGroup as any);
+  new PersistNgFormPlugin(query).setForm(formGroup);
 
   it('should set the form initial state from the store', () => {
     expect(formGroup.value).toEqual({ skills: ['js'] });

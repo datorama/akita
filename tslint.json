@@ -1,4 +1,5 @@
 {
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rulesDirectory": ["node_modules/@nrwl/workspace/src/tslint", "node_modules/codelyzer"],
   "rules": {
     "arrow-return-shorthand": true,
@@ -40,8 +41,10 @@
     "prefer-const": true,
     "radix": true,
     "triple-equals": [true, "allow-null-check"],
-    "unified-signatures": true,
-    "variable-name": false,
+    "unified-signatures": false,
+    "variable-name": {
+      "options": ["ban-keywords", "check-format", "allow-leading-underscore"]
+    },
     "nx-enforce-module-boundaries": [
       true,
       {
@@ -68,6 +71,23 @@
     "template-banana-in-box": true,
     "template-no-negated-async": true,
     "use-lifecycle-interface": true,
-    "use-pipe-transform-interface": true
+    "use-pipe-transform-interface": true,
+    "cyclomatic-complexity": true,
+    "restrict-plus-operands": true,
+    "no-unbound-method": false,
+    "prefer-for-of": true,
+    "prefer-template": true,
+    "no-submodule-imports": [true, "rxjs", "@angular/platform-browser", "@angular/core/testing", "zone.js"],
+    "no-unnecessary-callback-wrapper": true,
+    "ban-types": [
+      true,
+      ["Object", "Avoid using the `Object` type. Did you mean `object`?"],
+      ["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
+      ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
+      ["String", "Avoid using the `String` type. Did you mean `string`?"],
+      ["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
+    ],
+    "max-classes-per-file": false,
+    "no-implicit-dependencies": [true, "dev"]
   }
 }

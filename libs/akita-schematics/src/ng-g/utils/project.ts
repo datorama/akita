@@ -1,14 +1,10 @@
 import { Tree } from '@angular-devkit/schematics';
 import { getWorkspace } from 'schematics-utilities';
 
-export function getProjectPath(host: Tree, options: { project?: string | undefined; path?: string | undefined }) {
+export function getProjectPath(host: Tree, options: { project?: string | undefined; path?: string | undefined }): string {
   const workspace = getWorkspace(host);
-
-  if (!options.project) {
-    options.project = Object.keys(workspace.projects)[0];
-  }
-
-  const project = workspace.projects[options.project];
+  const firstWorkspaceProject = Object.keys(workspace.projects)[0];
+  const project = workspace.projects[options.project || firstWorkspaceProject];
 
   if (project.root.substr(-1) === '/') {
     project.root = project.root.substr(0, project.root.length - 1);
@@ -23,12 +19,13 @@ export function getProjectPath(host: Tree, options: { project?: string | undefin
   return options.path;
 }
 
-export function getProject(workspaceOrHost: any, projectName: string) {
+export function isWorkspaceSchema(workspace: any): boolean {
+  return !!(workspace && workspace.projects);
+}
+
+// TODO getProject is only ever called with getProject(host: Tree, options: any)
+export function getProject(workspaceOrHost: any, projectName: string): any {
   const workspace = isWorkspaceSchema(workspaceOrHost) ? workspaceOrHost : getWorkspace(workspaceOrHost);
 
   return workspace.projects[projectName];
-}
-
-export function isWorkspaceSchema(workspace: any) {
-  return !!(workspace && (workspace as any).projects);
 }

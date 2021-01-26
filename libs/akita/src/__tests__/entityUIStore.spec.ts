@@ -11,7 +11,7 @@ interface ArticleUI {
   isOpen: boolean;
 }
 
-interface ArticlesState extends EntityState<Article> {}
+type ArticlesState = EntityState<Article>;
 
 interface ArticlesUIState extends EntityState<ArticleUI> {
   rootProp: string;
@@ -54,7 +54,7 @@ describe('EntityUIState', () => {
 
     store.set([
       { id: 1, title: 'hello' },
-      { id: 2, title: 'hello2' }
+      { id: 2, title: 'hello2' },
     ]);
     expect(store.ui.set).toHaveBeenCalledTimes(1);
     expect(store.ui.add).not.toHaveBeenCalled();
@@ -63,18 +63,18 @@ describe('EntityUIState', () => {
       1: {
         id: 1,
         isLoading: false,
-        isOpen: true
+        isOpen: true,
       },
       2: {
         id: 2,
         isLoading: false,
-        isOpen: true
-      }
+        isOpen: true,
+      },
     });
 
     store.add([
       { id: 3, title: 'hello3' },
-      { id: 4, title: 'hello4' }
+      { id: 4, title: 'hello4' },
     ]);
     expect(store.ui.add).toHaveBeenCalledTimes(1);
     expect(store.ui._value().ids.length).toBe(4);
@@ -83,13 +83,13 @@ describe('EntityUIState', () => {
         3: {
           id: 3,
           isLoading: false,
-          isOpen: true
+          isOpen: true,
         },
         4: {
           id: 4,
           isLoading: false,
-          isOpen: true
-        }
+          isOpen: true,
+        },
       })
     );
 
@@ -102,7 +102,7 @@ describe('EntityUIState', () => {
     store.upsertMany([{ id: 20, title: 'new' }]);
     expect(store.ui._value().entities).toEqual(
       expect.objectContaining({
-        '20': { id: 20, isLoading: false, isOpen: true }
+        '20': { id: 20, isLoading: false, isOpen: true },
       })
     );
   });
@@ -134,6 +134,7 @@ describe('EntityUIState - custom options', () => {
 @StoreConfig({ name: 'articles', idKey: 'uid' })
 class Articles3Store extends EntityStore<any, any> {
   counter = 0;
+
   constructor() {
     super();
     this.akitaPreAddEntity = this.akitaPreAddEntity.bind(this);
@@ -141,6 +142,7 @@ class Articles3Store extends EntityStore<any, any> {
   }
 
   akitaPreAddEntity(entity) {
+    // eslint-disable-next-line no-plusplus
     return { ...entity, uid: this.counter++ };
   }
 }

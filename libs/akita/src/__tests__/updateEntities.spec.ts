@@ -11,7 +11,7 @@ describe('updateEntities', () => {
 
     it('should support callback', () => {
       const store = new BooksStore();
-      store.update(state => ({ filter: `${state.filter}_CHANGED` }));
+      store.update((state) => ({ filter: `${state.filter}_CHANGED` }));
       expect(store._value().filter).toEqual('ALL_CHANGED');
       expect(store._value().entities).toEqual({});
       expect(store._value().ids).toEqual([]);
@@ -30,8 +30,8 @@ describe('updateEntities', () => {
     it('should support entity callback', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
-      store.update(1, entity => ({
-        title: `${entity.title}_changed`
+      store.update(1, (entity) => ({
+        title: `${entity.title}_changed`,
       }));
       expect(store._value().entities[1].title).toEqual('Item 1_changed');
       store.remove();
@@ -40,8 +40,8 @@ describe('updateEntities', () => {
     it('should support array of entities', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
-      store.update([1, 2], entity => ({
-        title: `${entity.title}_changed`
+      store.update([1, 2], (entity) => ({
+        title: `${entity.title}_changed`,
       }));
       expect(store._value().entities[1].title).toEqual('Item 1_changed');
       expect(store._value().entities[2].title).toEqual('Item 2_changed');
@@ -61,8 +61,8 @@ describe('updateEntities', () => {
     it('should support all with callback', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
-      store.update(null, entity => ({
-        title: `${entity.title}_changed`
+      store.update(null, (entity) => ({
+        title: `${entity.title}_changed`,
       }));
 
       expect(store._value().entities[1].title).toEqual('Item 1_changed');
@@ -73,7 +73,7 @@ describe('updateEntities', () => {
     it('should support predicate', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
-      store.update(entity => entity.price === 1, { title: 'Changed' });
+      store.update((entity) => entity.price === 1, { title: 'Changed' });
 
       expect(store._value().entities[1].title).toEqual('Changed');
       expect(store._value().entities[2].title).toEqual('Item 2');
@@ -84,9 +84,9 @@ describe('updateEntities', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
       store.update(
-        entity => entity.price === 1,
-        entity => ({
-          title: `${entity.title}_changed`
+        (entity) => entity.price === 1,
+        (entity) => ({
+          title: `${entity.title}_changed`,
         })
       );
 
@@ -99,7 +99,7 @@ describe('updateEntities', () => {
       const store = new BooksStore();
       store.add(createMockEntities());
       jest.spyOn(store, '_setState');
-      store.update(entity => entity.price === 10, { title: 'Changed' });
+      store.update((entity) => entity.price === 10, { title: 'Changed' });
       expect(store._setState).not.toHaveBeenCalled();
       store.remove();
     });

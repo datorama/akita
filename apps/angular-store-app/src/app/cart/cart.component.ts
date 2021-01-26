@@ -9,19 +9,18 @@ import { CartActions } from './state/cart.actions';
 @Component({
   selector: 'app-cart',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './cart.component.html'
+  templateUrl: './cart.component.html',
 })
 export class CartComponent implements OnInit {
   items$: Observable<(CartItem & Product)[]>;
   total$: Observable<number>;
   notify$: Observable<boolean>;
 
-  constructor(private cartQuery: CartQuery, private actions: Actions) {
-  }
+  constructor(private cartQuery: CartQuery, private actions: Actions) {}
 
   ngOnInit() {
-    this.items$  = this.cartQuery.selectItems$;
-    this.total$  = this.cartQuery.selectTotal$;
+    this.items$ = this.cartQuery.selectItems$;
+    this.total$ = this.cartQuery.selectTotal$;
     this.notify$ = this.cartQuery.selectNotification$;
   }
 

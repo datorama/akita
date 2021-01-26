@@ -16,7 +16,7 @@
     "redux",
     "reactive"
   ],
-  "homepage": "https://github.com/datorama/tree/master/libs/akita#readme",
+  "homepage": "https://github.com/datorama/akita/tree/master/libs/akita#readme",
   "bugs": {
     "url": "https://github.com/datorama/akita/issues"
   },

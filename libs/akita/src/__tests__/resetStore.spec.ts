@@ -1,22 +1,18 @@
-import { StoreConfig } from '../lib/storeConfig';
 import { EntityStore } from '../lib/entityStore';
 import { Store } from '../lib/store';
+import { StoreConfig } from '../lib/storeConfig';
 
 @StoreConfig({
   name: 'todos',
-  resettable: true
+  resettable: true,
 })
-class TodosStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class TodosStore extends EntityStore<any, any> {}
 
 const todosstore = new TodosStore();
 
 @StoreConfig({
   name: 'auth',
-  resettable: true
+  resettable: true,
 })
 class AuthStore extends Store<any> {
   constructor() {
@@ -24,7 +20,7 @@ class AuthStore extends Store<any> {
       id: null,
       firstName: '',
       lastName: '',
-      token: ''
+      token: '',
     });
   }
 }
@@ -38,7 +34,7 @@ describe('Reset store', () => {
         id: 1,
         firstName: 'Netanel',
         lastName: 'Basal',
-        token: 'token'
+        token: 'token',
       };
     });
     jest.spyOn(authStore, 'setHasCache');
@@ -53,7 +49,7 @@ describe('Reset store', () => {
       entities: {},
       ids: [],
       loading: true,
-      error: null
+      error: null,
     };
     jest.spyOn(todosstore, 'setHasCache');
     todosstore.reset();

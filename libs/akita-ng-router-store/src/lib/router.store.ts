@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Store, StoreConfig, HashMap } from '@datorama/akita';
+import { HashMap, Store, StoreConfig } from '@datorama/akita';
 
-export type ActiveRouteState = {
+export interface ActiveRouteState {
   url: string;
   urlAfterRedirects: string;
   fragment: string;
@@ -9,17 +9,17 @@ export type ActiveRouteState = {
   queryParams: HashMap<any>;
   data: HashMap<any>;
   navigationExtras: HashMap<any> | undefined;
-};
+}
 
-export type RouterState = {
+export interface RouterState {
   state: ActiveRouteState | null;
   navigationId: number | null;
-};
+}
 
 export function createInitialRouterState(): RouterState {
   return {
     state: null,
-    navigationId: null
+    navigationId: null,
   };
 }
 

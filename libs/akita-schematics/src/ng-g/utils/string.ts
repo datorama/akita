@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const pluralize = require('./pluralize');
 
 /**
@@ -61,6 +62,20 @@ export function camelize(str: string): string {
 }
 
 /**
+ Returns the Capitalized form of a string
+
+ ```javascript
+ 'innerHTML'.capitalize()         // 'InnerHTML'
+ 'action_name'.capitalize()       // 'Action_name'
+ 'css-class-name'.capitalize()    // 'Css-class-name'
+ 'my favorite items'.capitalize() // 'My favorite items'
+ ```
+ */
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.substr(1);
+}
+
+/**
  Returns the UpperCamelCase form of a string.
 
  ```javascript
@@ -73,7 +88,7 @@ export function camelize(str: string): string {
 export function classify(str: string): string {
   return str
     .split('.')
-    .map(part => capitalize(camelize(part)))
+    .map((part) => capitalize(camelize(part)))
     .join('.');
 }
 
@@ -89,42 +104,25 @@ export function classify(str: string): string {
  ```
  */
 export function underscore(str: string): string {
-  return str
-    .replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2')
-    .replace(STRING_UNDERSCORE_REGEXP_2, '_')
-    .toLowerCase();
+  return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
 }
 
-/**
- Returns the Capitalized form of a string
-
- ```javascript
- 'innerHTML'.capitalize()         // 'InnerHTML'
- 'action_name'.capitalize()       // 'Action_name'
- 'css-class-name'.capitalize()    // 'Css-class-name'
- 'my favorite items'.capitalize() // 'My favorite items'
- ```
- */
-export function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.substr(1);
-}
-
-export function singular(value: string) {
+export function singular(value: string): any {
   return pluralize.singular(value);
 }
 
-export function plural(value: string) {
+export function plural(value: string): any {
   return pluralize.plural(value);
 }
 
-export function group(name: string, group: string | undefined) {
-  return group ? `${group}/${name}` : name;
+export function group(name: string, groupName: string | undefined): string {
+  return groupName ? `${groupName}/${name}` : name;
 }
 
-export function featurePath(group: boolean | undefined, flat: boolean | undefined, path: string, name: string) {
-  if (group && !flat) {
+export function featurePath(groupName: boolean | undefined, flat: boolean | undefined, path: string, name: string): string {
+  if (groupName && !flat) {
     return `../../${path}/${name}/`;
   }
 
-  return group ? `../${path}/` : './';
+  return groupName ? `../${path}/` : './';
 }

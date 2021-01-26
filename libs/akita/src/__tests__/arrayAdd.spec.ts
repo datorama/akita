@@ -1,7 +1,7 @@
-import { ID, EntityState } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
-import { EntityStore } from '../lib/entityStore';
 import { arrayAdd } from '../lib/arrayAdd';
+import { EntityStore } from '../lib/entityStore';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
 interface Comment {
   id: ID;
@@ -29,6 +29,7 @@ const store = new ArticlesStore();
 
 describe('arrayAdd', () => {
   it('should add one', () => {
+    const store = new ArticlesStore();
     const article: Article = {
       id: 1,
       title: '',
@@ -44,10 +45,10 @@ describe('arrayAdd', () => {
     });
     expect(store._value().entities[1].comments.length).toBe(1);
     expect(store._value().entities[1].comments[0]).toBe(comment);
-    store.remove();
   });
 
   it('should add with empty initial array', () => {
+    const store = new ArticlesStore();
     const article: Article = {
       id: 1,
       title: '',
@@ -63,10 +64,10 @@ describe('arrayAdd', () => {
     });
     expect(store._value().entities[1].comments.length).toBe(1);
     expect(store._value().entities[1].comments[0]).toBe(comment);
-    store.remove();
   });
 
   it('should add multi', () => {
+    const store = new ArticlesStore();
     const article: Article = {
       id: 1,
       title: '',
@@ -86,7 +87,6 @@ describe('arrayAdd', () => {
     expect(store._value().entities[1].comments.length).toBe(2);
     expect(store._value().entities[1].comments[0]).toBe(comments[0]);
     expect(store._value().entities[1].comments[1]).toBe(comments[1]);
-    store.remove();
   });
 
   it('should work with non-objects', () => {

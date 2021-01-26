@@ -1,28 +1,29 @@
-/* global define */
+/* eslint-disable */
+/** global define */
 declare const define: any;
 
-(function(root, pluralize) {
-  /* istanbul ignore else */
+(function (root, pluralize) {
+  /** istanbul ignore else */
   if (typeof require === 'function' && typeof exports === 'object' && typeof module === 'object') {
     // Node.
     module.exports = pluralize();
   } else if (typeof define === 'function' && define.amd) {
     // AMD, registers as an anonymous module.
-    define(function() {
+    define(function () {
       return pluralize();
     });
   } else {
     // Browser global.
     root.pluralize = pluralize();
   }
-})(this, function() {
+})(this, function () {
   // Rule storage - pluralize and singularize need to be run sequentially,
   // while other rules can be optimized using an object for instant lookups.
-  var pluralRules = [];
-  var singularRules = [];
-  var uncountables = {};
-  var irregularPlurals = {};
-  var irregularSingles = {};
+  const pluralRules = [];
+  const singularRules = [];
+  const uncountables = {};
+  const irregularPlurals = {};
+  const irregularSingles = {};
 
   /**
    * Sanitize a pluralization rule to a usable regular expression.
@@ -32,7 +33,7 @@ declare const define: any;
    */
   function sanitizeRule(rule) {
     if (typeof rule === 'string') {
-      return new RegExp('^' + rule + '$', 'i');
+      return new RegExp(`^${rule}$`, 'i');
     }
 
     return rule;
@@ -70,7 +71,7 @@ declare const define: any;
    * @return {string}
    */
   function interpolate(str, args) {
-    return str.replace(/\$(\d{1,2})/g, function(match, index) {
+    return str.replace(/\$(\d{1,2})/g, function (match, index) {
       return args[index] || '';
     });
   }
@@ -83,8 +84,8 @@ declare const define: any;
    * @return {string}
    */
   function replace(word, rule) {
-    return word.replace(rule[0], function(match, index) {
-      var result = interpolate(rule[1], arguments);
+    return word.replace(rule[0], function (match, index) {
+      const result = interpolate(rule[1], arguments);
 
       if (match === '') {
         return restoreCase(word[index - 1], result);
@@ -108,11 +109,11 @@ declare const define: any;
       return word;
     }
 
-    var len = rules.length;
+    let len = rules.length;
 
     // Iterate over the sanitization rules and use the first one to match.
     while (len--) {
-      var rule = rules[len];
+      const rule = rules[len];
 
       if (rule[0].test(word)) return replace(word, rule);
     }
@@ -129,9 +130,9 @@ declare const define: any;
    * @return {Function}
    */
   function replaceWord(replaceMap, keepMap, rules) {
-    return function(word) {
+    return function (word) {
       // Get the correct token and case restoration functions.
-      var token = word.toLowerCase();
+      const token = word.toLowerCase();
 
       // Check against the keep object map.
       if (keepMap.hasOwnProperty(token)) {
@@ -152,8 +153,8 @@ declare const define: any;
    * Check if a word is part of the map.
    */
   function checkWord(replaceMap, keepMap, rules) {
-    return function(word) {
-      var token = word.toLowerCase();
+    return function (word) {
+      const token = word.toLowerCase();
 
       if (keepMap.hasOwnProperty(token)) return true;
       if (replaceMap.hasOwnProperty(token)) return false;
@@ -171,9 +172,9 @@ declare const define: any;
    * @return {string}
    */
   function pluralize(word, count, inclusive) {
-    var pluralized = count === 1 ? pluralize.singular(word) : pluralize.plural(word);
+    const pluralized = count === 1 ? pluralize.singular(word) : pluralize.plural(word);
 
-    return (inclusive ? count + ' ' : '') + pluralized;
+    return (inclusive ? `${count} ` : '') + pluralized;
   }
 
   /**
@@ -210,7 +211,7 @@ declare const define: any;
    * @param {(string|RegExp)} rule
    * @param {string}          replacement
    */
-  pluralize.addPluralRule = function(rule, replacement) {
+  pluralize.addPluralRule = function (rule, replacement) {
     pluralRules.push([sanitizeRule(rule), replacement]);
   };
 
@@ -220,7 +221,7 @@ declare const define: any;
    * @param {(string|RegExp)} rule
    * @param {string}          replacement
    */
-  pluralize.addSingularRule = function(rule, replacement) {
+  pluralize.addSingularRule = function (rule, replacement) {
     singularRules.push([sanitizeRule(rule), replacement]);
   };
 
@@ -229,7 +230,7 @@ declare const define: any;
    *
    * @param {(string|RegExp)} word
    */
-  pluralize.addUncountableRule = function(word) {
+  pluralize.addUncountableRule = function (word) {
     if (typeof word === 'string') {
       uncountables[word.toLowerCase()] = true;
       return;
@@ -246,7 +247,7 @@ declare const define: any;
    * @param {string} single
    * @param {string} plural
    */
-  pluralize.addIrregularRule = function(single, plural) {
+  pluralize.addIrregularRule = function (single, plural) {
     plural = plural.toLowerCase();
     single = single.toLowerCase();
 
@@ -310,8 +311,8 @@ declare const define: any;
     ['groove', 'grooves'],
     ['pickaxe', 'pickaxes'],
     ['whiskey', 'whiskies'],
-    ['passerby', 'passersby']
-  ].forEach(function(rule) {
+    ['passerby', 'passersby'],
+  ].forEach(function (rule) {
     return pluralize.addIrregularRule(rule[0], rule[1]);
   });
 
@@ -343,8 +344,8 @@ declare const define: any;
     [/(child)(?:ren)?$/i, '$1ren'],
     [/eaux$/i, '$0'],
     [/m[ae]n$/i, 'men'],
-    ['thou', 'you']
-  ].forEach(function(rule) {
+    ['thou', 'you'],
+  ].forEach(function (rule) {
     return pluralize.addPluralRule(rule[0], rule[1]);
   });
 
@@ -374,8 +375,8 @@ declare const define: any;
     [/(pe)(rson|ople)$/i, '$1rson'],
     [/(child)ren$/i, '$1'],
     [/(eau)x?$/i, '$1'],
-    [/men$/i, 'man']
-  ].forEach(function(rule) {
+    [/men$/i, 'man'],
+  ].forEach(function (rule) {
     return pluralize.addSingularRule(rule[0], rule[1]);
   });
 
@@ -482,7 +483,7 @@ declare const define: any;
     /measles$/i,
     /o[iu]s$/i, // "carnivorous"
     /pox$/i, // "chickpox", "smallpox"
-    /sheep$/i
+    /sheep$/i,
   ].forEach(pluralize.addUncountableRule);
 
   return pluralize;

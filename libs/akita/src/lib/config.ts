@@ -10,18 +10,18 @@ export interface AkitaConfig {
 let CONFIG: AkitaConfig = {
   resettable: false,
   ttl: null,
-  producerFn: undefined
+  producerFn: undefined,
 };
 
-export function akitaConfig(config: AkitaConfig) {
+export function akitaConfig(config: AkitaConfig): void {
   CONFIG = { ...CONFIG, ...config };
 }
 
-// @internal
-export function getAkitaConfig() {
+/** @internal */
+export function getAkitaConfig(): AkitaConfig {
   return CONFIG;
 }
 
-export function getGlobalProducerFn() {
+export function getGlobalProducerFn(): AkitaConfig['producerFn'] {
   return CONFIG.producerFn;
 }

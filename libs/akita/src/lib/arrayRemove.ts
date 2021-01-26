@@ -1,9 +1,9 @@
-import { IDS, ItemPredicate } from './types';
-import { DEFAULT_ID_KEY } from './defaultIDKey';
 import { coerceArray } from './coerceArray';
-import { isObject } from './isObject';
+import { DEFAULT_ID_KEY } from './defaultIDKey';
 import { isFunction } from './isFunction';
+import { isObject } from './isObject';
 import { not } from './not';
+import { IDS, ItemPredicate } from './types';
 
 /**
  * Remove item from collection
@@ -22,7 +22,7 @@ export function arrayRemove<T extends any[], Entity = any>(arr: T, identifier: I
   if (isFunction(identifier)) {
     filterFn = not(identifier);
   } else {
-    identifiers = coerceArray(identifier as IDS);
+    identifiers = coerceArray(identifier);
     filterFn = (current) => {
       return identifiers.includes(isObject(current) ? current[idKey] : current) === false;
     };

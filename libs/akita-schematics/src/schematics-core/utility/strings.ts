@@ -52,12 +52,9 @@ export function dasherize(str?: string): string {
  */
 export function camelize(str: string): string {
   return str
-    .replace(
-      STRING_CAMELIZE_REGEXP,
-      (_match: string, _separator: string, chr: string) => {
-        return chr ? chr.toUpperCase() : '';
-      }
-    )
+    .replace(STRING_CAMELIZE_REGEXP, (_match: string, _separator: string, chr: string) => {
+      return chr ? chr.toUpperCase() : '';
+    })
     .replace(/^([A-Z])/, (match: string) => match.toLowerCase());
 }
 
@@ -90,10 +87,7 @@ export function classify(str: string): string {
  ```
  */
 export function underscore(str: string): string {
-  return str
-    .replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2')
-    .replace(STRING_UNDERSCORE_REGEXP_2, '_')
-    .toLowerCase();
+  return str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase();
 }
 
 /**
@@ -122,23 +116,14 @@ export function capitalize(str: string): string {
  ```
  */
 export function pluralize(str: string): string {
-  return camelize(
-    [/([^aeiou])y$/, /()fe?$/, /([^aeiou]o|[sxz]|[cs]h)$/].map(
-      (c, i) => (str = str.replace(c, `$1${'iv'[i] || ''}e`))
-    ) && str + 's'
-  );
+  return camelize([/([^aeiou])y$/, /()fe?$/, /([^aeiou]o|[sxz]|[cs]h)$/].map((c, i) => (str = str.replace(c, `$1${'iv'[i] || ''}e`))) && str + 's');
 }
 
 export function group(name: string, group: string | undefined) {
   return group ? `${group}/${name}` : name;
 }
 
-export function featurePath(
-  group: boolean | undefined,
-  flat: boolean | undefined,
-  path: string,
-  name: string
-) {
+export function featurePath(group: boolean | undefined, flat: boolean | undefined, path: string, name: string) {
   if (group && !flat) {
     return `../../${path}/${name}/`;
   }

@@ -1,7 +1,9 @@
 {
   "editor.codeActionsOnSave": ["source.organizeImports", "source.fixAll"],
   "editor.formatOnSave": true,
-  "editor.rulers": [200], // matches prettier printWidth
+  "editor.rulers": [160], // matches prettier printWidth
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "eslint.packageManager": "yarn",
+  "files.eol": "\n"
 }

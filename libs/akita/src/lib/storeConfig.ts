@@ -16,17 +16,19 @@ export type UpdatableStoreConfigOptions = {
 export const configKey = 'akitaConfig';
 
 export function StoreConfig(metadata: StoreConfigOptions) {
-  return function(constructor: Function) {
-    constructor[configKey] = { idKey: 'id' };
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return (constructor: Function): void => {
+    // TODO just use the StoreConfigOptions type
+    const config: any = {
+      // default value
+      idKey: 'id',
+      ...metadata,
+    };
+    // rename name to storeName
+    config.storeName = config.name;
+    delete config.name;
 
-    for (let i = 0, keys = Object.keys(metadata); i < keys.length; i++) {
-      const key = keys[i];
-      /* name is preserved read only key */
-      if (key === 'name') {
-        constructor[configKey]['storeName'] = metadata[key];
-      } else {
-        constructor[configKey][key] = metadata[key];
-      }
-    }
+    // eslint-disable-next-line no-param-reassign
+    constructor[configKey] = config;
   };
 }

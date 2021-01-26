@@ -20,26 +20,24 @@ import { toBoolean } from './toBoolean';
 import { EntityState, getEntityType, getIDType, HashMap, ItemPredicate, OrArray, SelectOptions } from './types';
 
 /**
- *
  *  The Entity Query is similar to the general Query, with additional functionality tailored for EntityStores.
  *
+ * @example
  *  class WidgetsQuery extends QueryEntity<WidgetsState> {
  *     constructor(protected store: WidgetsStore) {
  *       super(store);
  *     }
  *  }
- *
- *
- *
  */
 export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, IDType = getIDType<S>> extends Query<S> {
   ui: EntityUIQuery<any, EntityType>;
+
   protected store: EntityStore<S>;
 
-  // @internal
+  /** @internal */
   __store__;
 
-  constructor(store: EntityStore<S>, private options: QueryConfigOptions = {}) {
+  constructor(store: EntityStore<S>, private readonly options: QueryConfigOptions = {}) {
     super(store);
     this.__store__ = store;
   }
@@ -65,14 +63,19 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    *   sortBy: 'price',
    *   sortByOrder: Order.DESC
    * })
-   *
    */
   selectAll(options: SelectAllOptionsA<EntityType>): Observable<HashMap<EntityType>>;
+
   selectAll(options: SelectAllOptionsB<EntityType>): Observable<EntityType[]>;
+
   selectAll(options: SelectAllOptionsC<EntityType>): Observable<HashMap<EntityType>>;
+
   selectAll(options: SelectAllOptionsD<EntityType>): Observable<EntityType[]>;
+
   selectAll(options: SelectAllOptionsE<EntityType>): Observable<EntityType[]>;
+
   selectAll(): Observable<EntityType[]>;
+
   selectAll(
     options: SelectOptions<EntityType> = {
       asObject: false,
@@ -104,18 +107,24 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    * })
    */
   getAll(options: SelectAllOptionsA<EntityType>): HashMap<EntityType>;
+
   getAll(options: SelectAllOptionsB<EntityType>): EntityType[];
+
   getAll(options: SelectAllOptionsC<EntityType>): HashMap<EntityType>;
+
   getAll(options: SelectAllOptionsD<EntityType>): EntityType[];
+
   getAll(options: SelectAllOptionsE<EntityType>): EntityType[];
+
   getAll(): EntityType[];
+
   getAll(options: SelectOptions<EntityType> = { asObject: false, filterBy: undefined, limitTo: undefined }): EntityType[] | HashMap<EntityType> {
     if (options.asObject) {
       return entitiesToMap(this.getValue(), options);
     }
-    sortByOptions(options, this.config || this.options);
 
-    return entitiesToArray(this.getValue(), options);
+    const sortOptions = sortByOptions(options, this.config || this.options);
+    return entitiesToArray(this.getValue(), sortOptions);
   }
 
   /**
@@ -127,7 +136,9 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    * this.query.selectMany([1,2], entity => entity.title)
    */
   selectMany<R>(ids: IDType[]): Observable<EntityType[]>;
+
   selectMany<R>(ids: IDType[], project: (entity: EntityType) => R): Observable<R[]>;
+
   selectMany<R>(ids: IDType[], project?: (entity: EntityType) => R): Observable<EntityType[] | R[]> {
     if (!ids || !ids.length) return of([]);
 
@@ -153,12 +164,10 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
   selectEntity<R>(id: IDType, project: (entity?: EntityType) => R): Observable<R>;
   selectEntity<R>(predicate: ItemPredicate<EntityType>): Observable<EntityType | undefined>;
   selectEntity<R>(idOrPredicate: IDType | ItemPredicate<EntityType>, project?: ((entity: EntityType) => R) | keyof EntityType): Observable<R | EntityType | undefined> {
-    let id = idOrPredicate;
-
-    if (isFunction(idOrPredicate)) {
-      // For performance reason we expect the entity to be in the store
-      (id as any) = findEntityByPredicate(idOrPredicate, this.getValue().entities);
-    }
+    const id = isFunction(idOrPredicate)
+      ? // For performance reason we expect the entity to be in the store
+        findEntityByPredicate(idOrPredicate, this.getValue().entities)
+      : idOrPredicate;
 
     return this.select((state) => state.entities).pipe(map(getEntity(id, project)), distinctUntilChanged());
   }
@@ -224,7 +233,7 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
   getActive(): OrArray<EntityType> | undefined {
     const activeId = this.getActiveId();
     if (isArray(activeId)) {
-      return activeId.map((id) => this.getValue().entities[id as any]);
+      return activeId.map((id) => this.getValue().entities[id]);
     }
     return toBoolean(activeId) ? this.getEntity(activeId) : undefined;
   }
@@ -327,9 +336,13 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    *
    */
   hasEntity(id: IDType): boolean;
+
   hasEntity(id: IDType[]): boolean;
+
   hasEntity(project: (entity: EntityType) => boolean): boolean;
+
   hasEntity(): boolean;
+
   hasEntity(projectOrIds?: IDType | IDType[] | ((entity: EntityType) => boolean)): boolean {
     if (isNil(projectOrIds)) {
       return this.getValue().ids.length > 0;
@@ -356,7 +369,7 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    *
    */
   hasActive(id?: IDType): boolean {
-    const active = this.getValue().active;
+    const { active } = this.getValue();
     const isIdProvided = isDefined(id);
     if (Array.isArray(active)) {
       if (isIdProvided) {
@@ -384,12 +397,13 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
    *
    * }
    */
-  createUIQuery() {
+  createUIQuery(): void {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     this.ui = new EntityUIQuery(this.__store__.ui);
   }
 
-  private selectAt<R>(mapFn: (ids: IDType[]) => IDType, project?: (entity?: EntityType) => R) {
-    return this.select((state) => state.ids as any[]).pipe(
+  private selectAt<R>(mapFn: (ids: IDType[]) => IDType, project?: (entity?: EntityType) => R): Observable<R> {
+    return this.select((state) => state.ids).pipe(
       map(mapFn),
       distinctUntilChanged(),
       switchMap((id: IDType) => this.selectEntity(id, project))
@@ -397,9 +411,5 @@ export class QueryEntity<S extends EntityState, EntityType = getEntityType<S>, I
   }
 }
 
-// @internal
-export class EntityUIQuery<UIState, DEPRECATED = any> extends QueryEntity<UIState> {
-  constructor(store) {
-    super(store);
-  }
-}
+/** @internal */
+export class EntityUIQuery<UIState, DEPRECATED = any> extends QueryEntity<UIState> {}

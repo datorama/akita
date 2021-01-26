@@ -1,12 +1,8 @@
-// @internal
-export class AkitaError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
+/** @internal */
+export class AkitaError extends Error {}
 
-// @internal
-export function assertStoreHasName(name: string, className: string) {
+/** @internal */
+export function assertStoreHasName(name: string, className: string): void {
   if (!name) {
     console.error(`@StoreConfig({ name }) is missing in ${className}`);
   }

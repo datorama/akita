@@ -1,24 +1,26 @@
 import { Injectable } from '@angular/core';
+import { NavigationCancel, NavigationError } from '@angular/router';
 import { filterNil, Query } from '@datorama/akita';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged, map, pluck } from 'rxjs/operators';
-import { RouterState, RouterStore } from './router.store';
+import { ActiveRouteState, RouterState, RouterStore } from './router.store';
 
-function slice(section: string) {
-  return (source: Observable<RouterState>) => {
-    return source.pipe(map((data) => data.state)).pipe(
+function slice(section: keyof ActiveRouteState) {
+  return (source: Observable<RouterState>): Observable<any> =>
+    source.pipe(
+      map((data) => data.state),
       filterNil,
       map((state) => state[section])
     );
-  };
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class RouterQuery extends Query<RouterState> {
-  __navigationCancel = new Subject();
-  __navigationError = new Subject();
+  private readonly navigationCancel = new Subject<NavigationCancel>();
+
+  private readonly navigationError = new Subject<NavigationError>();
 
   constructor(protected store: RouterStore) {
     super(store);
@@ -31,7 +33,7 @@ export class RouterQuery extends Query<RouterState> {
       return this.select().pipe(slice('params'), distinctUntilChanged());
     }
 
-    const select = (p: string) => this.select().pipe(slice('params'), pluck(p), distinctUntilChanged());
+    const select = (p: string): Observable<any> => this.select().pipe(slice('params'), pluck(p), distinctUntilChanged());
 
     if (Array.isArray(names)) {
       const sources = names.map(select);
@@ -43,7 +45,7 @@ export class RouterQuery extends Query<RouterState> {
 
   getParams<T = any>(name?: string): T | null {
     if (this.getValue().state) {
-      const params = this.getValue().state.params;
+      const { params } = this.getValue().state;
       if (name === undefined) {
         return params as T;
       }
@@ -61,7 +63,7 @@ export class RouterQuery extends Query<RouterState> {
       return this.select().pipe(slice('queryParams'), distinctUntilChanged());
     }
 
-    const select = (p: string) => this.select().pipe(slice('queryParams'), pluck(p), distinctUntilChanged());
+    const select = (p: string): Observable<any> => this.select().pipe(slice('queryParams'), pluck(p), distinctUntilChanged());
 
     if (Array.isArray(names)) {
       const sources = names.map(select);
@@ -106,7 +108,7 @@ export class RouterQuery extends Query<RouterState> {
 
   getData<T = any>(name?: string): T | null {
     if (this.getValue().state) {
-      const data = this.getValue().state.data;
+      const { data } = this.getValue().state;
       if (name === undefined) {
         return data as T;
       }
@@ -138,11 +140,19 @@ export class RouterQuery extends Query<RouterState> {
     return null;
   }
 
-  selectNavigationCancel() {
-    return this.__navigationCancel.asObservable();
+  selectNavigationCancel(): Observable<NavigationCancel> {
+    return this.navigationCancel.asObservable();
   }
 
-  selectNavigationError() {
-    return this.__navigationError.asObservable();
+  emitNavigationCancel(event: NavigationCancel): void {
+    this.navigationCancel.next(event);
+  }
+
+  selectNavigationError(): Observable<NavigationError> {
+    return this.navigationError.asObservable();
+  }
+
+  emitNavigationError(event: NavigationError): void {
+    this.navigationError.next(event);
   }
 }

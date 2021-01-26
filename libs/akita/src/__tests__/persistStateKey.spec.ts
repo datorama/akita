@@ -1,11 +1,9 @@
-import { StoreConfig } from '../lib/storeConfig';
 import { EntityStore } from '../lib/entityStore';
 import { persistState } from '../lib/persistState';
+import { StoreConfig } from '../lib/storeConfig';
 import { tick } from './setup';
 
-@StoreConfig({
-  name: 'todos'
-})
+@StoreConfig({ name: 'todos' })
 class TodosStore extends EntityStore<any, any> {
   constructor() {
     super({ ui: { filter: 'SHOW_ALL' } });
@@ -43,17 +41,15 @@ describe('Persist state - initial', () => {
 describe('Persist state - nested key', () => {
   localStorage.clear();
 
-  @StoreConfig({
-    name: 'todos'
-  })
-  class TodosStore extends EntityStore<any, any> {
+  @StoreConfig({ name: 'todos' })
+  class TodosStore2 extends EntityStore<any, any> {
     constructor() {
       super({ a: { b: { c: { d: 'test' } } } });
     }
   }
 
   persistState({ include: ['todos.a.b.c.d'], key: 'TestA' });
-  const todosStore = new TodosStore();
+  const todosStore = new TodosStore2();
 
   it('should persist only the nested key', async () => {
     todosStore.update({ a: { b: { c: { d: 'changed' } } } });
@@ -66,10 +62,8 @@ describe('Persist state - nested key initial', () => {
   localStorage.clear();
   localStorage.setItem('AkitaStores', JSON.stringify({ todos: 'changed' }));
 
-  @StoreConfig({
-    name: 'todos'
-  })
-  class TodosStore extends EntityStore<any, any> {
+  @StoreConfig({ name: 'todos' })
+  class TodosStore2 extends EntityStore<any, any> {
     constructor() {
       super({ a: { b: { c: { e: 'hello', d: 'test', f: { g: 'Akita' } } } } });
     }
@@ -77,7 +71,7 @@ describe('Persist state - nested key initial', () => {
 
   persistState({ include: ['todos.a.b.c.d'] });
 
-  const todosStore = new TodosStore();
+  const todosStore = new TodosStore2();
 
   it('should persist only the d key', async () => {
     await tick();

@@ -1,4 +1,4 @@
-import { __stores__ } from './stores';
+import { __stores__ } from './store';
 import { applyTransaction } from './transaction';
 
 export interface ResetStoresParams {
@@ -15,23 +15,22 @@ export interface ResetStoresParams {
  *   exclude: ['auth']
  * })
  */
-export function resetStores(options?: Partial<ResetStoresParams>) {
+export function resetStores(options?: Partial<ResetStoresParams>): void {
   const defaults: ResetStoresParams = {
-    exclude: []
+    exclude: [],
   };
 
-  options = Object.assign({}, defaults, options);
+  const mergedOptions = { ...defaults, ...options };
   const stores = Object.keys(__stores__);
 
   applyTransaction(() => {
-    for (const store of stores) {
-      const s = __stores__[store];
-      if (!options.exclude) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const storeName of stores) {
+      const s = __stores__[storeName];
+      if (!mergedOptions.exclude) {
         s.reset();
-      } else {
-        if (options.exclude.indexOf(s.storeName) === -1) {
-          s.reset();
-        }
+      } else if (!mergedOptions.exclude.includes(storeName)) {
+        s.reset();
       }
     }
   });

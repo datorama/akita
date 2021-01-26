@@ -6,28 +6,47 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint", "@nrwl/nx"],
+  "plugins": ["@typescript-eslint", "@nrwl/nx", "jest", "prettier", "import", "deprecation"],
   "extends": [
-    "eslint:recommended",
+    // "airbnb-typescript/base", TODO enable this
+    "plugin:jest/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
-    "prettier/@typescript-eslint"
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
   ],
   "rules": {
-    "@typescript-eslint/explicit-member-accessibility": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-parameter-properties": "off",
+    "prettier/prettier": "warn",
     "@nrwl/nx/enforce-module-boundaries": [
       "error",
       {
-        "enforceBuildableLibDependency": true,
         "allow": [],
-        "depConstraints": [
-          { "sourceTag": "*", "onlyDependOnLibsWithTags": ["*"] }
-        ]
+        "depConstraints": [{ "onlyDependOnLibsWithTags": ["*"], "sourceTag": "*" }],
+        "enforceBuildableLibDependency": true
       }
-    ]
+    ],
+    "@typescript-eslint/prefer-readonly": "warn",
+    "complexity": "error",
+    "import/no-extraneous-dependencies": ["error", { "packageDir": "." }],
+    "import/prefer-default-export": "off",
+    "no-implicit-globals": "error",
+    "no-implied-eval": "error",
+    "deprecation/deprecation": "off", // TODO find alternative, see https://github.com/gund/eslint-plugin-deprecation/issues/2
+    "no-console": ["error", { "allow": ["warn", "error", "trace", "group", "groupEnd"] }],
+    "no-plusplus": "off",
+    /**
+     * The goal is to enable the below rules, but it'll require too much work at the moment
+     */
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "no-underscore-dangle": "off", // underscore is used rampantly through out the code
+    "max-classes-per-file": "off"
   },
   "overrides": [
     {

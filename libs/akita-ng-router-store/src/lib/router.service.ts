@@ -1,29 +1,30 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, GuardsCheckEnd, NavigationCancel, NavigationEnd, NavigationError, ResolveEnd, Router, RoutesRecognized } from '@angular/router';
-import { RouterState, RouterStore } from './router.store';
-import { RouterQuery } from './router.query';
 import { action, setSkipAction } from '@datorama/akita';
+import { RouterQuery } from './router.query';
+import { RouterState, RouterStore } from './router.store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RouterService {
   private dispatchTriggeredByRouter = false;
+
   private navigationTriggeredByDispatch = false;
   private lastRouterState: RouterState;
 
-  constructor(private routerStore: RouterStore, private routerQuery: RouterQuery, private router: Router) {}
+  constructor(private readonly routerStore: RouterStore, private readonly routerQuery: RouterQuery, private readonly router: Router) {}
 
   @action('Navigation Cancelled')
   dispatchRouterCancel(event: NavigationCancel) {
     this.update({ navigationId: event.id });
-    this.routerQuery.__navigationCancel.next(event);
+    this.routerQuery.emitNavigationCancel(event);
   }
 
   @action('Navigation Error')
   dispatchRouterError(event: NavigationError) {
     this.update({ navigationId: event.id });
-    this.routerQuery.__navigationError.next(event);
+    this.routerQuery.emitNavigationError(event);
   }
 
   @action('Navigation Succeeded')
@@ -31,7 +32,7 @@ export class RouterService {
     this.update(this.lastRouterState);
   }
 
-  init() {
+  init(): void {
     this.setUpStoreListener();
     this.setUpStateRollbackEvents();
   }
@@ -65,7 +66,7 @@ export class RouterService {
     if (this.router.url !== this.lastRouterState.state.url) {
       this.navigationTriggeredByDispatch = true;
       setSkipAction();
-      this.router.navigateByUrl(this.lastRouterState.state.url);
+      void this.router.navigateByUrl(this.lastRouterState.state.url);
     }
   }
 

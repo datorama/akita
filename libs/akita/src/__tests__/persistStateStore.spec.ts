@@ -1,10 +1,10 @@
-import { StoreConfig } from '../lib/storeConfig';
 import { persistState } from '../lib/persistState';
 import { Store } from '../lib/store';
+import { StoreConfig } from '../lib/storeConfig';
 import { tick } from './setup';
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
 class TodosStore extends Store<any> {
   constructor() {
@@ -13,7 +13,7 @@ class TodosStore extends Store<any> {
 }
 
 @StoreConfig({
-  name: 'todosUi'
+  name: 'todosUi',
 })
 class TodosUiStore extends Store<any> {
   constructor() {
@@ -25,7 +25,7 @@ describe('Persist state - similar store names', () => {
   localStorage.clear();
   const storageState = {
     todos: { todos: ['Akita'] },
-    todosUi: { filter: 'SHOW_COMPLETED' }
+    todosUi: { filter: 'SHOW_COMPLETED' },
   };
   localStorage.setItem('AkitaStores', JSON.stringify(storageState));
 

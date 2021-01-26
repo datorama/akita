@@ -1,30 +1,37 @@
-import { EntityState, PreAddEntity } from './types';
 import { hasEntity } from './hasEntity';
+import { EntityState, PreAddEntity } from './types';
 
-export type AddEntitiesParams<State, Entity> = {
+export interface AddEntitiesParams<State, Entity> {
   state: State;
   entities: Entity[];
   idKey: string;
   options: AddEntitiesOptions;
   preAddEntity: PreAddEntity<Entity>;
-};
+}
 
-export type AddEntitiesOptions = { prepend?: boolean; loading?: boolean };
+export interface AddEntitiesOptions {
+  prepend?: boolean;
+  loading?: boolean;
+}
 
-// @internal
-export function addEntities<S extends EntityState<E>, E>({ state, entities, idKey, options = {}, preAddEntity }: AddEntitiesParams<S, E>) {
-  let newEntities = {};
-  let newIds = [];
+/** @internal */
+export function addEntities<S extends EntityState<E>, E>({ state, entities, idKey, options = {}, preAddEntity }: AddEntitiesParams<S, E>): { newState: S; newIds: any[] } | null {
+  const newEntities = {};
+  const newIds = [];
   let hasNewEntities = false;
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const entity of entities) {
     if (hasEntity(state.entities, entity[idKey]) === false) {
       // evaluate the middleware first to support dynamic ids
       const current = preAddEntity(entity);
       const entityId = current[idKey];
       newEntities[entityId] = current;
-      if (options.prepend) newIds.unshift(entityId);
-      else newIds.push(entityId);
+      if (options.prepend) {
+        newIds.unshift(entityId);
+      } else {
+        newIds.push(entityId);
+      }
 
       hasNewEntities = true;
     }
@@ -36,11 +43,11 @@ export function addEntities<S extends EntityState<E>, E>({ state, entities, idKe
           ...state,
           entities: {
             ...state.entities,
-            ...newEntities
+            ...newEntities,
           },
-          ids: options.prepend ? [...newIds, ...state.ids] : [...state.ids, ...newIds]
+          ids: options.prepend ? [...newIds, ...state.ids] : [...state.ids, ...newIds],
         },
-        newIds
+        newIds,
       }
     : null;
 }

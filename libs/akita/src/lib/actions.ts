@@ -4,19 +4,19 @@ export interface StoreSnapshotAction {
   type: string | null;
   entityIds: IDS[] | null;
   skip: boolean;
-  payload: any
+  payload: any;
 }
 
 export const currentAction: StoreSnapshotAction = {
   type: null,
   entityIds: null,
   skip: false,
-  payload: null
+  payload: null,
 };
 
 let customActionActive = false;
 
-export function resetCustomAction() {
+export function resetCustomAction(): void {
   customActionActive = false;
 }
 
@@ -30,11 +30,11 @@ export function setAction(type: string, entityIds?, payload?: any) {
   if (customActionActive === false) {
     currentAction.type = type;
     currentAction.entityIds = entityIds;
-    currentAction.payload = payload
+    currentAction.payload = payload;
   }
 }
 
-export function setSkipAction(skip = true) {
+export function setSkipAction(skip = true): void {
   currentAction.skip = skip;
 }
 

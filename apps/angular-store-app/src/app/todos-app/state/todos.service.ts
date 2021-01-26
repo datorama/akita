@@ -1,19 +1,19 @@
-import { TodosStore } from './todos.store';
-import { createTodo, Todo } from './todo.model';
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { action, ID } from '@datorama/akita';
 import { VISIBILITY_FILTER } from '../filter/filter.model';
-import { ID, action } from '@datorama/akita';
+import { createTodo, Todo } from './todo.model';
+import { TodosStore } from './todos.store';
 
 @Injectable({ providedIn: 'root' })
 export class TodosService {
-  constructor(private todosStore: TodosStore) {}
+  constructor(private readonly todosStore: TodosStore) {}
 
   @action('Update filter')
   updateFilter(filter: VISIBILITY_FILTER) {
     this.todosStore.update({
       ui: {
-        filter
-      }
+        filter,
+      },
     });
   }
 
@@ -32,12 +32,11 @@ export class TodosService {
 
   checkAll(completed: boolean) {
     this.todosStore.update(null, {
-      completed
+      completed,
     });
   }
 
   move(index: number) {
-    console.log('TCL: move -> index', index);
     this.todosStore.move(index, index - 1);
   }
 }

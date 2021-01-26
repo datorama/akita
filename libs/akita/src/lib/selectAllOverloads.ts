@@ -1,6 +1,6 @@
-import { SelectOptions } from './types';
 import { SortBy } from './queryConfig';
 import { Order } from './sort';
+import { SelectOptions } from './types';
 
 export type SelectAllOptionsA<E> = { asObject: true; filterBy?: SelectOptions<E>['filterBy']; limitTo?: number; sortBy?: undefined; sortByOrder?: undefined };
 export type SelectAllOptionsB<E> = { filterBy: SelectOptions<E>['filterBy']; limitTo?: number; sortBy?: SortBy<E>; sortByOrder?: Order };

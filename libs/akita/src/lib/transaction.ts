@@ -1,11 +1,11 @@
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
-import { logAction } from './actions';
+import { BehaviorSubject, Observable, of, OperatorFunction, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { logAction } from './actions';
 
-// @internal
+/** @internal */
 const transactionFinished = new Subject();
 
-// @internal
+/** @internal */
 const transactionInProcess = new BehaviorSubject(false);
 
 export type TransactionManager = {
@@ -13,14 +13,19 @@ export type TransactionManager = {
   batchTransaction: Subject<boolean> | null;
 };
 
-// @internal
+/** @internal */
 export const transactionManager: TransactionManager = {
   activeTransactions: 0,
-  batchTransaction: null
+  batchTransaction: null,
 };
 
-// @internal
-export function startBatch() {
+/** @internal */
+export function isTransactionInProcess(): boolean {
+  return transactionManager.activeTransactions > 0;
+}
+
+/** @internal */
+export function startBatch(): void {
   if (!isTransactionInProcess()) {
     transactionManager.batchTransaction = new Subject();
   }
@@ -28,9 +33,10 @@ export function startBatch() {
   transactionInProcess.next(true);
 }
 
-// @internal
-export function endBatch() {
-  if (--transactionManager.activeTransactions === 0) {
+/** @internal */
+export function endBatch(): void {
+  transactionManager.activeTransactions -= 1;
+  if (transactionManager.activeTransactions === 0) {
     transactionManager.batchTransaction.next(true);
     transactionManager.batchTransaction.complete();
     transactionInProcess.next(false);
@@ -38,12 +44,7 @@ export function endBatch() {
   }
 }
 
-// @internal
-export function isTransactionInProcess() {
-  return transactionManager.activeTransactions > 0;
-}
-
-// @internal
+/** @internal */
 export function commit(): Observable<boolean> {
   return transactionManager.batchTransaction ? transactionManager.batchTransaction.asObservable() : of(true);
 }
@@ -86,16 +87,16 @@ export function applyTransaction<T>(action: () => T, thisArg = undefined): T {
  *
  */
 export function transaction() {
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value;
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
+    const descriptorCopy = { ...descriptor };
 
-    descriptor.value = function(...args) {
+    descriptorCopy.value = function transactionWrapper(...args): any {
       return applyTransaction(() => {
-        return originalMethod.apply(this, args);
+        return descriptor.value.apply(this, args);
       }, this);
     };
 
-    return descriptor;
+    return descriptorCopy;
   };
 }
 
@@ -114,8 +115,6 @@ export function transaction() {
  * )
  *
  */
-export function withTransaction<T>(next: (value: T) => void) {
-  return function(source: Observable<T>): Observable<T> {
-    return source.pipe(tap(value => applyTransaction(() => next(value))));
-  };
+export function withTransaction<T>(next: (value: T) => void): OperatorFunction<T, T> {
+  return (source: Observable<T>): Observable<T> => source.pipe(tap((value) => applyTransaction(() => next(value))));
 }

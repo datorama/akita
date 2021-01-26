@@ -1,8 +1,22 @@
-import { apply, applyTemplates, branchAndMerge, chain, filter, mergeWith, move, noop, Rule, SchematicContext, SchematicsException, Tree, url } from '@angular-devkit/schematics';
-import { Schema as EffectOptions } from './schema';
+import {
+  apply,
+  applyTemplates,
+  branchAndMerge,
+  chain,
+  filter,
+  mergeWith,
+  move,
+  noop,
+  Rule,
+  SchematicContext,
+  SchematicsException,
+  Tree,
+  url,
+} from '@angular-devkit/schematics';
 import * as ts from 'typescript';
-import { classify, dasherize } from '../utils/string';
 import { addImportToModule, buildRelativePath, findModuleFromOptions, getProjectPath, InsertChange, insertImport, parseName, stringUtils } from '../utils';
+import { classify, dasherize } from '../utils/string';
+import { Schema as EffectOptions } from './schema';
 
 function addImportToNgModule(options: EffectOptions): Rule {
   return (host: Tree) => {
@@ -28,13 +42,19 @@ function addImportToNgModule(options: EffectOptions): Rule {
 
     const effectsModuleImport = insertImport(source, modulePath, 'AkitaNgEffectsModule', '@datorama/akita-ng-effects');
 
-    const effectsPath = `/${options.path}/` + (options.flat ? '' : dasherize(options.name) + '/') + (options.group ? 'effects/' : '') + dasherize(options.name) + '.effects';
+    const effectsPath =
+      `/${options.path}/` + (options.flat ? '' : dasherize(options.name) + '/') + (options.group ? 'effects/' : '') + dasherize(options.name) + '.effects';
     const relativePath = buildRelativePath(modulePath, effectsPath);
     const effectsImport = insertImport(source, modulePath, effectsName, relativePath);
 
     const effectsSetup = `[${effectsName}]`;
     // options.root && options.minimal ? `[]` : `[${effectsName}]`;
-    const [effectsNgModuleImport] = addImportToModule(source, modulePath, `AkitaNgEffectsModule.for${options.root ? 'Root' : 'Feature'}(${effectsSetup})`, relativePath);
+    const [effectsNgModuleImport] = addImportToModule(
+      source,
+      modulePath,
+      `AkitaNgEffectsModule.for${options.root ? 'Root' : 'Feature'}(${effectsSetup})`,
+      relativePath
+    );
 
     let changes = [effectsModuleImport, effectsNgModuleImport];
 
@@ -60,7 +80,9 @@ function getEffectMethod(creators?: boolean) {
 
 function getEffectStart(name: string, creators?: boolean): string {
   const effectName = classify(name);
-  return creators ? `load${effectName}s$ = createEffect(() => {` + '\n    return this.actions$.pipe( \n' : '@Effect()\n' + `  load${effectName}s$ = this.actions$.pipe(`;
+  return creators
+    ? `load${effectName}s$ = createEffect(() => {` + '\n    return this.actions$.pipe( \n'
+    : '@Effect()\n' + `  load${effectName}s$ = this.actions$.pipe(`;
 }
 
 function getEffectEnd(creators?: boolean) {
@@ -88,8 +110,8 @@ export default function (options: EffectOptions): Rule {
         effectMethod: getEffectMethod(options.creators),
         effectStart: getEffectStart(options.name, options.creators),
         effectEnd: getEffectEnd(options.creators),
-        ...(options as object),
-      } as any),
+        ...options,
+      }),
       move(parsedPath.path),
     ]);
 

@@ -10,19 +10,12 @@ import { ContactEffects } from './state/contact.effects';
 const routes: Routes = [
   {
     path: '',
-    component: ContactsPageComponent
-  }
+    component: ContactsPageComponent,
+  },
 ];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ContentLoaderModule,
-    RouterModule.forChild(routes),
-    AkitaNgEffectsModule.forFeature([ContactEffects])
-  ],
-  declarations: [ContactsPageComponent]
+  imports: [CommonModule, ReactiveFormsModule, ContentLoaderModule, RouterModule.forChild(routes), AkitaNgEffectsModule.forFeature([ContactEffects])],
+  declarations: [ContactsPageComponent],
 })
-export class ContactsModule {
-}
+export class ContactsModule {}

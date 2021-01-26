@@ -1,12 +1,10 @@
 <section class="padding">
-
   <h1 class="grey-text flex align-center">
     <i class="large material-icons">view_list</i>
     Products
   </h1>
 
-  <ng-container *ngIf="!(loading$ | async); else loadingTpl">
-
+  <ng-container *ngIf="(loading$ | async) === false; else loadingTpl">
     <!--Sorting-->
     <div class="col s12">
       <label>Sort by</label>
@@ -19,22 +17,14 @@
     <!--Search Input-->
     <div class="input-field">
       <i class="material-icons prefix">search</i>
-      <input placeholder="Search Product.." [formControl]="search">
+      <input placeholder="Search Product.." [formControl]="search" />
     </div>
-
 
     <!--Products List-->
 
     <div class="mt flex">
-
-      <app-product *ngFor="let product of (products$ | async)"
-                   (add)="addProductToCart($event)"
-                   (subtract)="subtract($event)"
-                   [product]="product">
-      </app-product>
-
+      <app-product *ngFor="let product of products$ | async" (add)="addProductToCart($event)" (subtract)="subtract($event)" [product]="product"> </app-product>
     </div>
-
   </ng-container>
 
   <!--Spinner-->
@@ -43,5 +33,4 @@
       <div class="indeterminate"></div>
     </div>
   </ng-template>
-
 </section>

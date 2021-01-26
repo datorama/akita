@@ -8,7 +8,7 @@ export interface CartState extends EntityState<CartItem> {}
 @Injectable({ providedIn: 'root' })
 @StoreConfig({
   name: 'cart',
-  idKey: 'productId'
+  idKey: 'productId',
 })
 export class CartStore extends EntityStore<CartState> {
   constructor() {
@@ -16,16 +16,16 @@ export class CartStore extends EntityStore<CartState> {
   }
 
   updateQuantity(productId: Product['id'], operand = 1) {
-    this.update(productId, entity => {
+    this.update(productId, (entity) => {
       const newQuantity = entity.quantity + operand;
       return {
         ...entity,
-        quantity: newQuantity
+        quantity: newQuantity,
       };
     });
   }
 
   notify(notify: boolean) {
-    this.update(state => ({ ...state, notify }));
+    this.update((state) => ({ ...state, notify }));
   }
 }

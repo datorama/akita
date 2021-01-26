@@ -2,7 +2,7 @@ import { isBrowser } from './root';
 
 export let __DEV__ = true;
 
-export function enableAkitaProdMode() {
+export function enableAkitaProdMode(): void {
   __DEV__ = false;
   if (isBrowser) {
     delete (window as any).$$stores;
@@ -10,7 +10,7 @@ export function enableAkitaProdMode() {
   }
 }
 
-// @internal
-export function isDev() {
+/** @internal */
+export function isDev(): boolean {
   return __DEV__;
 }

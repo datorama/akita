@@ -1,7 +1,6 @@
-import { createMockEntities } from './mocks';
-import { entitiesMapMock } from './mocks';
-import { BooksStore } from './booksStore';
 import { DEFAULT_ID_KEY, getInitialEntitiesState, setEntities } from '..';
+import { BooksStore } from './booksStore';
+import { createMockEntities, entitiesMapMock } from './mocks';
 
 function preAddEntity(e) {
   return e;
@@ -19,7 +18,7 @@ describe('setEntities', () => {
   it('should support ids and entities object', () => {
     const data = {
       entities: entitiesMapMock,
-      ids: [1, 2]
+      ids: [1, 2],
     };
     const entityState = getInitialEntitiesState();
     const newState = setEntities({ state: entityState, entities: data, idKey: DEFAULT_ID_KEY, preAddEntity });

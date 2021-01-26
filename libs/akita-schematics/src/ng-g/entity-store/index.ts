@@ -1,8 +1,7 @@
 import { apply, branchAndMerge, chain, filter, mergeWith, move, noop, Rule, SchematicContext, template, Tree, url } from '@angular-devkit/schematics';
-
 import { getProjectPath, parseName, stringUtils } from '../utils';
-import { EntityStoreOptions } from './models/entity-store-options.model';
 import { ActiveStateType } from './models/active-state.enum';
+import { EntityStoreOptions } from './models/entity-store-options.model';
 
 function getExtensionState({ idType, name, withActive }: EntityStoreOptions) {
   const isID = idType === 'string' || idType === 'number';
@@ -44,10 +43,10 @@ export default function (options: EntityStoreOptions): Rule {
       options.spec ? noop() : filter((path) => !path.endsWith('.spec.ts')),
       template({
         ...stringUtils,
-        ...(options as object),
+        ...options,
         extensionState,
         importsString,
-      } as any),
+      }),
       move(parsedPath.path),
     ]);
 

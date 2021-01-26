@@ -1,7 +1,7 @@
-import { ID, EntityState } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
-import { EntityStore } from '../lib/entityStore';
 import { arrayUpdate } from '../lib/arrayUpdate';
+import { EntityStore } from '../lib/entityStore';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
 interface Comment {
   id: ID;
@@ -27,6 +27,7 @@ class ArticlesStore extends EntityStore<ArticlesState, Article> {
 
 const store = new ArticlesStore();
 
+// !WARN state bleed found in below tests!!!
 describe('arrayUpdate', () => {
   it('should update one', () => {
     const article: Article = {

@@ -13,6 +13,7 @@ describe('env', () => {
   let windowSpy;
 
   beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     windowSpy = jest.spyOn(global, 'window', 'get');
   });

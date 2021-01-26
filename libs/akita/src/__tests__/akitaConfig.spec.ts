@@ -1,16 +1,12 @@
-import { akitaConfig, EntityStore, QueryEntity } from '..';
+import { akitaConfig, QueryEntity } from '..';
 import { initialState, Todo, TodosStore } from './setup';
 
 akitaConfig({
   resettable: true,
-  ttl: 300
+  ttl: 300,
 });
 
-class TodosQuery extends QueryEntity<Todo> {
-  constructor(store: EntityStore) {
-    super(store);
-  }
-}
+class TodosQuery extends QueryEntity<Todo> {}
 
 describe('Akita global config', () => {
   let todosStore: TodosStore;
@@ -41,7 +37,7 @@ describe('Akita global config', () => {
       ids: [],
       loading: true,
       error: null,
-      ...initialState
+      ...initialState,
     };
     todosStore.add({ id: 1 });
     jest.spyOn(todosStore, 'setHasCache');

@@ -9,12 +9,12 @@ interface State {
 
 const state = {
   theme: {
-    color: 'red'
-  }
+    color: 'red',
+  },
 };
 
 @StoreConfig({
-  name: 'themes'
+  name: 'themes',
 })
 class ThemeStore extends Store<State> {
   constructor() {
@@ -22,16 +22,20 @@ class ThemeStore extends Store<State> {
   }
 }
 
-const store = new ThemeStore();
-
 describe('Store', () => {
+  let store: ThemeStore;
+
+  beforeEach(() => {
+    store = new ThemeStore();
+  });
+
   it('should initialized the store', () => {
     expect(store._value()).toEqual(state);
   });
 
   it('should select slice from the store', () => {
     const spy = jest.fn();
-    store._select(state => state.theme).subscribe(spy);
+    store._select((state2) => state2.theme).subscribe(spy);
     expect(spy).toHaveBeenCalledWith({ color: 'red' });
     expect(spy).toHaveBeenCalledTimes(1);
   });
@@ -46,13 +50,13 @@ describe('Store', () => {
 
   it('should set a new state', () => {
     const spy = jest.fn();
-    store._select(state => state.theme).subscribe(spy);
-    store._setState(state => {
+    store._select((state2) => state2.theme).subscribe(spy);
+    store._setState((state2) => {
       return {
-        ...state,
+        ...state2,
         theme: {
-          color: 'blue'
-        }
+          color: 'blue',
+        },
       };
     });
 
@@ -61,8 +65,8 @@ describe('Store', () => {
     expect(spy).toHaveBeenCalledTimes(2);
     expect(store._value()).toEqual({
       theme: {
-        color: 'blue'
-      }
+        color: 'blue',
+      },
     });
   });
 
@@ -74,7 +78,6 @@ describe('Store', () => {
   });
 
   it('should destroy the store', () => {
-    const store = new ThemeStore();
     jest.spyOn(store, 'setHasCache');
     store.destroy();
     expect(store.setHasCache).toHaveBeenCalledTimes(1);
@@ -82,7 +85,6 @@ describe('Store', () => {
 
   it('should NOT destroy the store when hmr enabled', () => {
     (window as any).hmrEnabled = true;
-    const store = new ThemeStore();
     jest.spyOn(store, 'setHasCache');
     store.destroy();
     expect(store.setHasCache).toHaveBeenCalledTimes(0);
@@ -90,8 +92,9 @@ describe('Store', () => {
 });
 
 class User {
-  firstName: string = '';
-  lastName: string = '';
+  firstName = '';
+
+  lastName = '';
 
   constructor(params: Partial<User>) {
     Object.assign(this, params);
@@ -103,7 +106,7 @@ class User {
 }
 
 @StoreConfig({
-  name: 'user'
+  name: 'user',
 })
 class UserStore extends Store<User> {
   constructor() {
@@ -127,7 +130,7 @@ describe('With Class', () => {
 });
 
 @StoreConfig({
-  name: 'user'
+  name: 'user',
 })
 class TestStore extends Store<User> {
   constructor() {
@@ -141,7 +144,7 @@ const testQuery = new Query(testStore);
 describe('Loading Basic Store', () => {
   it('should support loading', () => {
     let value;
-    testQuery.selectLoading().subscribe(v => {
+    testQuery.selectLoading().subscribe((v) => {
       value = v;
     });
     expect(value).toBeTruthy();
@@ -151,15 +154,11 @@ describe('Loading Basic Store', () => {
 });
 
 @StoreConfig({ name: 'products' })
-export class ProductsStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class ProductsStore extends EntityStore<any, any> {}
 
 const productsStore = new ProductsStore();
 
-export class ProductsStoreWithoutDeco extends EntityStore<any, any> {}
+class ProductsStoreWithoutDeco extends EntityStore<any, any> {}
 
 const productsStore2 = new ProductsStoreWithoutDeco({}, { name: 'pr' });
 

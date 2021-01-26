@@ -1,10 +1,6 @@
 import { Store, StoreConfig } from '@datorama/akita';
 
 @StoreConfig({
-  name: 'formsManager'
+  name: 'formsManager',
 })
-export class FormsStore<T> extends Store<T> {
-  constructor(state: T) {
-    super(state);
-  }
-}
+export class FormsStore<T> extends Store<T> {}

@@ -1,6 +1,7 @@
+/* eslint-disable jest/valid-title */
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { fakeAsync, inject, TestBed, tick } from '@angular/core/testing';
-import { HttpMethod, NgEntityServiceNotifier } from './ng-entity-service-notifier';
+import { NgEntityServiceNotifier } from './ng-entity-service-notifier';
 import { defaultConfig, NgEntityServiceGlobalConfig, NG_ENTITY_SERVICE_CONFIG } from './ng-entity-service.config';
 import { NgEntityServiceLoader } from './ng-entity-service.loader';
 import {
@@ -13,10 +14,11 @@ import {
   TestServiceWithMixedConfig,
   TestStore,
 } from './setup';
+import { HttpMethod } from './types';
 
 describe('NgEntityService', () => {
   describe('should merge config in order...', () => {
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -37,7 +39,7 @@ describe('NgEntityService', () => {
       }));
     });
 
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -72,7 +74,7 @@ describe('NgEntityService', () => {
       }));
     });
 
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -108,7 +110,7 @@ describe('NgEntityService', () => {
       }));
     });
 
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -144,7 +146,7 @@ describe('NgEntityService', () => {
       }));
     });
 
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -177,7 +179,7 @@ describe('NgEntityService', () => {
       }));
     });
 
-    describe('', () => {
+    describe(undefined, () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           providers: [
@@ -264,6 +266,7 @@ describe('NgEntityService', () => {
     }));
 
     it('should throw when no baseUrl is configured', inject([TestService], (service: TestService) => {
+      // eslint-disable-next-line no-param-reassign
       service.baseUrl = undefined;
       expect(() => service.api).toThrowError();
     }));
@@ -473,6 +476,10 @@ describe('NgEntityService', () => {
 
         const req = httpMock.expectOne(dummyUrl);
         req.flush([]);
+
+        expect(() => {
+          httpMock.verify();
+        }).not.toThrow();
       }
     ));
 
@@ -484,6 +491,10 @@ describe('NgEntityService', () => {
 
         const req = httpMock.expectOne(dummyUrl);
         req.flush([]);
+
+        expect(() => {
+          httpMock.verify();
+        }).not.toThrow();
       }
     ));
 
@@ -544,6 +555,7 @@ describe('NgEntityService', () => {
         const expectedUrl = `${service.api}/${urlPostfix}`;
         service.get({ urlPostfix }).subscribe();
         const req = httpMock.expectOne((x) => x.url === expectedUrl);
+        expect(req.request.url).toBe(expectedUrl);
         req.flush([]);
       }
     ));
@@ -556,6 +568,7 @@ describe('NgEntityService', () => {
         const expectedUrl = `${service.api}/${entityId}/${urlPostfix}`;
         service.get(entityId, { urlPostfix }).subscribe();
         const req = httpMock.expectOne((x) => x.url === expectedUrl);
+        expect(req.request.url).toBe(expectedUrl);
         req.flush([]);
       }
     ));
@@ -791,6 +804,10 @@ describe('NgEntityService', () => {
 
         const req = httpMock.expectOne(dummyUrl);
         req.flush([]);
+
+        expect(() => {
+          httpMock.verify();
+        }).not.toThrow();
       }
     ));
 
@@ -828,6 +845,7 @@ describe('NgEntityService', () => {
         const expectedUrl = `${service.api}/${urlPostfix}`;
         service.add(dummyEntity, { urlPostfix }).subscribe();
         const req = httpMock.expectOne((x) => x.url === expectedUrl);
+        expect(req.request.url).toBe(expectedUrl);
         req.flush([]);
       }
     ));
@@ -1041,6 +1059,10 @@ describe('NgEntityService', () => {
 
         const req = httpMock.expectOne(dummyUrl);
         req.flush([]);
+
+        expect(() => {
+          httpMock.verify();
+        }).not.toThrow();
       }
     ));
 
@@ -1081,6 +1103,7 @@ describe('NgEntityService', () => {
         const expectedUrl = `${service.api}/${entityId}/${urlPostfix}`;
         service.update(entityId, dummyEntity, { urlPostfix }).subscribe();
         const req = httpMock.expectOne((x) => x.url === expectedUrl);
+        expect(req.request.url).toBe(expectedUrl);
         req.flush([]);
       }
     ));
@@ -1293,6 +1316,10 @@ describe('NgEntityService', () => {
 
         const req = httpMock.expectOne(dummyUrl);
         req.flush([]);
+
+        expect(() => {
+          httpMock.verify();
+        }).not.toThrow();
       }
     ));
 
@@ -1330,6 +1357,7 @@ describe('NgEntityService', () => {
         const expectedUrl = `${service.api}/${entityId}/${urlPostfix}`;
         service.delete(entityId, { urlPostfix }).subscribe();
         const req = httpMock.expectOne((x) => x.url === expectedUrl);
+        expect(req.request.url).toBe(expectedUrl);
         req.flush([]);
       }
     ));

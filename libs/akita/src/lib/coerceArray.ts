@@ -1,6 +1,6 @@
 import { isNil } from './isNil';
 
-// @internal
+/** @internal */
 export function coerceArray<T>(value: T | T[]): T[] {
   if (isNil(value)) {
     return [];

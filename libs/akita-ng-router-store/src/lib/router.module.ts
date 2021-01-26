@@ -3,7 +3,7 @@ import { RouterService } from './router.service';
 
 @NgModule()
 export class AkitaNgRouterStoreModule {
-  constructor(private routerService: RouterService) {
+  constructor(private readonly routerService: RouterService) {
     this.routerService.init();
   }
 }

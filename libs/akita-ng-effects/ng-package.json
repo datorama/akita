@@ -4,8 +4,5 @@
   "lib": {
     "entryFile": "src/index.ts"
   },
-  "whitelistedNonPeerDependencies": [
-    "ts-action",
-    "ts-action-operators"
-  ]
+  "whitelistedNonPeerDependencies": ["ts-action", "ts-action-operators"]
 }

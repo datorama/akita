@@ -4,16 +4,22 @@ import { currentAction, resetCustomAction, setAction, StoreSnapshotAction } from
 import { getAkitaConfig, getGlobalProducerFn } from './config';
 import { deepFreeze } from './deepFreeze';
 import { dispatchAdded, dispatchDeleted, dispatchUpdate } from './dispatchers';
-import { isDev, __DEV__ } from './env';
+import { isDev } from './env';
 import { assertStoreHasName } from './errors';
 import { isDefined } from './isDefined';
 import { isFunction } from './isFunction';
 import { isPlainObject } from './isPlainObject';
 import { isBrowser } from './root';
 import { configKey, StoreConfigOptions, UpdatableStoreConfigOptions } from './storeConfig';
-import { __stores__ } from './stores';
 import { commit, isTransactionInProcess } from './transaction';
 import { StoreCache, UpdateStateCallback } from './types';
+
+/** @internal */
+export const __stores__: { [storeName: string]: Store<any> } = {};
+
+if (isBrowser && isDev()) {
+  (window as any).$$stores = __stores__;
+}
 
 interface StoreSnapshot<S> {
   state: S;
@@ -50,6 +56,7 @@ export class Store<S = any> {
   private storeValue: S;
   private inTransaction = false;
   private _initialState: S;
+
   protected cache: StoreCache = {
     active: new BehaviorSubject<boolean>(false),
     ttl: null,
@@ -67,9 +74,9 @@ export class Store<S = any> {
    *  store.setLoading(true)
    *
    */
-  setLoading(loading = false) {
+  setLoading(loading = false): void {
     if (loading !== (this._value() as S & { loading: boolean }).loading) {
-      isDev() && setAction('Set Loading');
+      if (isDev()) setAction('Set Loading');
       this._setState((state) => ({ ...state, loading } as S & { loading: boolean }));
     }
   }
@@ -85,7 +92,7 @@ export class Store<S = any> {
    * store.setHasCache(true, { restartTTL: true })
    *
    */
-  setHasCache(hasCache: boolean, options: { restartTTL: boolean } = { restartTTL: false }) {
+  setHasCache(hasCache: boolean, options: { restartTTL: boolean } = { restartTTL: false }): void {
     if (hasCache !== this.cache.active.value) {
       this.cache.active.next(hasCache);
     }
@@ -96,7 +103,8 @@ export class Store<S = any> {
         if (this.cache.ttl !== null) {
           clearTimeout(this.cache.ttl);
         }
-        this.cache.ttl = <any>setTimeout(() => this.setHasCache(false), ttlConfig);
+        // TODO setTimeout() returns a timeoutID not a TTL
+        this.cache.ttl = setTimeout(() => this.setHasCache(false), ttlConfig) as any;
       }
     }
   }
@@ -108,7 +116,7 @@ export class Store<S = any> {
    * @example middleware
    *
    */
-  getValue() {
+  getValue(): S {
     return this.storeValue;
   }
 
@@ -120,14 +128,14 @@ export class Store<S = any> {
    *  store.setError({text: 'unable to load data' })
    *
    */
-  setError<T>(error: T) {
+  setError<T>(error: T): void {
     if (error !== (this._value() as S & { error: any }).error) {
-      isDev() && setAction('Set Error');
+      if (isDev()) setAction('Set Error');
       this._setState((state) => ({ ...state, error } as S & { error: any }));
     }
   }
 
-  // @internal
+  /** @internal */
   _select<R>(project: (store: S) => R): Observable<R> {
     return this.store.asObservable().pipe(
       map((snapshot) => project(snapshot.state)),
@@ -135,50 +143,50 @@ export class Store<S = any> {
     );
   }
 
-  // @internal
+  /** @internal */
   _value(): S {
     return this.storeValue;
   }
 
-  // @internal
+  /** @internal */
   _cache(): BehaviorSubject<boolean> {
     return this.cache.active;
   }
 
-  // @internal
+  /** @internal */
   get config(): StoreConfigOptions {
     return this.constructor[configKey] || {};
   }
 
-  // @internal
-  get storeName() {
+  /** @internal */
+  get storeName(): string {
     return (this.config as StoreConfigOptions & { storeName: string }).storeName || (this.options as StoreConfigOptions & { storeName: string }).storeName || this.options.name;
   }
 
-  // @internal
-  get deepFreeze() {
+  /** @internal */
+  get deepFreeze(): StoreConfigOptions['deepFreezeFn'] {
     return this.config.deepFreezeFn || this.options.deepFreezeFn || deepFreeze;
   }
 
-  // @internal
-  get cacheConfig() {
+  /** @internal */
+  get cacheConfig(): StoreConfigOptions['cache'] {
     return this.config.cache || this.options.cache;
   }
 
-  get _producerFn() {
+  get _producerFn(): StoreConfigOptions['producerFn'] {
     return this.config.producerFn || this.options.producerFn || getGlobalProducerFn();
   }
 
-  // @internal
-  get resettable() {
+  /** @internal */
+  get resettable(): boolean {
     return isDefined(this.config.resettable) ? this.config.resettable : this.options.resettable;
   }
 
-  // @internal
-  _setState(newState: ((state: Readonly<S>) => S) | S, _dispatchAction = true) {
+  /** @internal */
+  _setState(newState: ((state: Readonly<S>) => S) | S, _dispatchAction = true): void {
     if (isFunction(newState)) {
       const _newState = newState(this._value());
-      this.storeValue = __DEV__ ? this.deepFreeze(_newState) : _newState;
+      this.storeValue = isDev() ? this.deepFreeze(_newState) : _newState;
     } else {
       this.storeValue = newState;
     }
@@ -214,36 +222,32 @@ export class Store<S = any> {
    * store.reset()
    *
    */
-  reset() {
+  reset(): void {
     if (this.isResettable()) {
-      isDev() && setAction('Reset');
-      this._setState(() => Object.assign({}, this._initialState));
+      if (isDev()) setAction('Reset');
+      this._setState(() => ({ ...this._initialState }));
       this.setHasCache(false);
-    } else {
-      isDev() && console.warn(`You need to enable the reset functionality`);
-    }
+    } else if (isDev()) console.warn(`You need to enable the reset functionality`); // TODO add store name
   }
 
   /**
-   *
    * Update the store's value
    *
    * @example
-   *
    * this.store.update(state => {
    *   return {...}
    * })
    */
-  update(stateCallback: UpdateStateCallback<S>);
+  update(stateCallback: UpdateStateCallback<S>): void;
+
   /**
-   *
    * @example
-   *
    *  this.store.update({ token: token })
    */
-  update(state: Partial<S>);
-  update(stateOrCallback: Partial<S> | UpdateStateCallback<S>) {
-    isDev() && setAction('Update');
+  update(state: Partial<S>): void;
+
+  update(stateOrCallback: Partial<S> | UpdateStateCallback<S>): void {
+    if (isDev()) setAction('Update');
 
     let newState;
     const currentState = this._value();
@@ -258,16 +262,18 @@ export class Store<S = any> {
     this._setState(resolved);
   }
 
-  updateStoreConfig(newOptions: UpdatableStoreConfigOptions) {
+  updateStoreConfig(newOptions: UpdatableStoreConfigOptions): void {
     this.options = { ...this.options, ...newOptions };
   }
 
-  // @internal
-  akitaPreUpdate(_: Readonly<S>, nextState: Readonly<S>): S {
+  /** @internal */
+  // eslint-disable-next-line class-methods-use-this
+  akitaPreUpdate(_: Readonly<S>, nextState: Readonly<S>) {
     return nextState;
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
+    // TODO this is angular specific?
     this.destroy();
   }
 
@@ -280,7 +286,7 @@ export class Store<S = any> {
    * store.destroy()
    *
    */
-  destroy() {
+  destroy(): void {
     const hmrEnabled = isBrowser ? (window as any).hmrEnabled : false;
     if (!hmrEnabled && this === __stores__[this.storeName]) {
       delete __stores__[this.storeName];
@@ -291,18 +297,18 @@ export class Store<S = any> {
     }
   }
 
-  private onInit(initialState: S) {
+  private onInit(initialState: S): void {
     __stores__[this.storeName] = this;
     this._setState(() => initialState);
     dispatchAdded(this.storeName);
     if (this.isResettable()) {
       this._initialState = initialState;
     }
-    isDev() && assertStoreHasName(this.storeName, this.constructor.name);
+    if (isDev()) assertStoreHasName(this.storeName, this.constructor.name);
   }
 
-  private dispatch(state: S, _dispatchAction = true) {
-    let action: StoreSnapshotAction | undefined = undefined;
+  private dispatch(state: S, _dispatchAction = true): void {
+    let action: StoreSnapshotAction | undefined;
 
     if (_dispatchAction) {
       action = currentAction;
@@ -312,28 +318,28 @@ export class Store<S = any> {
     this.store.next({ state, action });
   }
 
-  private watchTransaction() {
+  private watchTransaction(): void {
     commit().subscribe(() => {
       this.inTransaction = false;
       this.dispatch(this._value());
     });
   }
 
-  private isResettable() {
+  private isResettable(): boolean {
     if (this.resettable === false) {
       return false;
     }
     return this.resettable || getAkitaConfig().resettable;
   }
 
-  private handleTransaction() {
+  private handleTransaction(): void {
     if (!this.inTransaction) {
       this.watchTransaction();
       this.inTransaction = true;
     }
   }
 
-  private getCacheTTL() {
+  private getCacheTTL(): number {
     return (this.cacheConfig && this.cacheConfig.ttl) || getAkitaConfig().ttl;
   }
 }

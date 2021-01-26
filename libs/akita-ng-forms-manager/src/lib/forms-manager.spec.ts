@@ -3,15 +3,19 @@ import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { AkitaNgFormsManager } from './forms-manager';
 
 // get forms snapshot
-function getSnapshot(formsManager) {
+function getSnapshot<T>(formsManager: AkitaNgFormsManager<T>): T {
   return formsManager.query.getValue();
 }
 
 describe('FormsManager', () => {
-  let formsManager: AkitaNgFormsManager, control: FormControl, arr: FormArray, group: FormGroup;
+  let formsManager: AkitaNgFormsManager;
+  let control: FormControl;
+  let arr: FormArray;
+  let group: FormGroup;
 
   beforeEach(() => {
     formsManager = new AkitaNgFormsManager();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     control = new FormControl('', [Validators.required]);
     arr = new FormArray([]);
     group = new FormGroup({
@@ -19,15 +23,12 @@ describe('FormsManager', () => {
       email: new FormControl(),
       phone: new FormGroup({
         number: new FormControl(),
-        prefix: new FormControl()
+        prefix: new FormControl(),
       }),
-      arr: new FormArray([])
+      arr: new FormArray([]),
     });
 
-    formsManager
-      .upsert('config', control, { persistForm: true })
-      .upsert('arr', arr)
-      .upsert('group', group);
+    formsManager.upsert('config', control, { persistForm: true }).upsert('arr', arr).upsert('group', group);
   });
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe('FormsManager', () => {
         errors: { required: true },
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: [],
@@ -60,7 +61,7 @@ describe('FormsManager', () => {
         touched: false,
         pristine: true,
         pending: false,
-        controls: {}
+        controls: {},
       },
       group: {
         value: {
@@ -68,18 +69,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -100,7 +101,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -112,16 +113,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -142,7 +143,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -154,9 +155,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -168,10 +169,10 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     control.patchValue('New value');
     tick(301);
@@ -186,7 +187,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: [],
@@ -199,7 +200,7 @@ describe('FormsManager', () => {
         touched: false,
         pristine: true,
         pending: false,
-        controls: {}
+        controls: {},
       },
       group: {
         value: {
@@ -207,18 +208,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -239,7 +240,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -251,16 +252,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -281,7 +282,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -293,9 +294,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -307,10 +308,10 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     arr.push(new FormControl('One'));
     arr.push(new FormControl('Two'));
@@ -326,7 +327,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: ['One', 'Two'],
@@ -350,7 +351,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           '1': {
             value: 'Two',
@@ -362,9 +363,9 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
+            pending: false,
+          },
+        },
       },
       group: {
         value: {
@@ -372,18 +373,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -404,7 +405,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -416,16 +417,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -446,7 +447,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -458,9 +459,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -472,18 +473,18 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     group.patchValue({
       name: 'Netanel',
       email: 'n@n.com',
       phone: {
         number: 1,
-        prefix: 2
-      }
+        prefix: 2,
+      },
     });
     (group.get('arr') as FormArray).push(new FormControl('One'));
     (group.get('arr') as FormArray).push(new FormControl('Two'));
@@ -499,7 +500,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: ['One', 'Two'],
@@ -523,7 +524,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           '1': {
             value: 'Two',
@@ -535,9 +536,9 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
+            pending: false,
+          },
+        },
       },
       group: {
         value: {
@@ -545,18 +546,18 @@ describe('FormsManager', () => {
           email: 'n@n.com',
           phone: {
             number: 1,
-            prefix: 2
+            prefix: 2,
           },
-          arr: ['One', 'Two']
+          arr: ['One', 'Two'],
         },
         rawValue: {
           name: 'Netanel',
           email: 'n@n.com',
           phone: {
             number: 1,
-            prefix: 2
+            prefix: 2,
           },
-          arr: ['One', 'Two']
+          arr: ['One', 'Two'],
         },
         valid: true,
         dirty: false,
@@ -577,7 +578,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: 'n@n.com',
@@ -589,16 +590,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: 1,
-              prefix: 2
+              prefix: 2,
             },
             rawValue: {
               number: 1,
-              prefix: 2
+              prefix: 2,
             },
             valid: true,
             dirty: false,
@@ -619,7 +620,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: 2,
@@ -631,9 +632,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: ['One', 'Two'],
@@ -645,10 +646,10 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
   }));
 
@@ -666,7 +667,7 @@ describe('FormsManager', () => {
       errors: { required: true },
       touched: false,
       pristine: true,
-      pending: false
+      pending: false,
     });
     control.patchValue('Update!!!!');
     tick(301);
@@ -681,11 +682,11 @@ describe('FormsManager', () => {
       errors: null,
       touched: false,
       pristine: true,
-      pending: false
+      pending: false,
     });
   }));
 
-  it('should update the store with forms value', fakeAsync(() => {
+  it('should update the store with forms value (2)', fakeAsync(() => {
     expect(getSnapshot(formsManager)).toEqual({
       config: {
         value: '',
@@ -697,7 +698,7 @@ describe('FormsManager', () => {
         errors: { required: true },
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: [],
@@ -710,7 +711,7 @@ describe('FormsManager', () => {
         touched: false,
         pristine: true,
         pending: false,
-        controls: {}
+        controls: {},
       },
       group: {
         value: {
@@ -718,18 +719,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -750,7 +751,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -762,16 +763,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -792,7 +793,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -804,9 +805,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -818,10 +819,10 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     control.patchValue('New value');
     tick(301);
@@ -836,7 +837,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: [],
@@ -849,7 +850,7 @@ describe('FormsManager', () => {
         touched: false,
         pristine: true,
         pending: false,
-        controls: {}
+        controls: {},
       },
       group: {
         value: {
@@ -857,18 +858,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -889,7 +890,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -901,16 +902,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -931,7 +932,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -943,9 +944,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -957,10 +958,10 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     arr.push(new FormControl('One'));
     arr.push(new FormControl('Two'));
@@ -976,7 +977,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: ['One', 'Two'],
@@ -1000,7 +1001,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           '1': {
             value: 'Two',
@@ -1012,9 +1013,9 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
+            pending: false,
+          },
+        },
       },
       group: {
         value: {
@@ -1022,18 +1023,18 @@ describe('FormsManager', () => {
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         rawValue: {
           name: null,
           email: null,
           phone: {
             number: null,
-            prefix: null
+            prefix: null,
           },
-          arr: []
+          arr: [],
         },
         valid: true,
         dirty: false,
@@ -1054,7 +1055,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: null,
@@ -1066,16 +1067,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             rawValue: {
               number: null,
-              prefix: null
+              prefix: null,
             },
             valid: true,
             dirty: false,
@@ -1096,7 +1097,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: null,
@@ -1108,9 +1109,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: [],
@@ -1122,18 +1123,18 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
     group.patchValue({
       name: 'Netanel',
       email: 'n@n.com',
       phone: {
         number: 1,
-        prefix: 2
-      }
+        prefix: 2,
+      },
     });
     (group.get('arr') as FormArray).push(new FormControl('One'));
     (group.get('arr') as FormArray).push(new FormControl('Two'));
@@ -1149,7 +1150,7 @@ describe('FormsManager', () => {
         errors: null,
         touched: false,
         pristine: true,
-        pending: false
+        pending: false,
       },
       arr: {
         value: ['One', 'Two'],
@@ -1173,7 +1174,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           '1': {
             value: 'Two',
@@ -1185,9 +1186,9 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
+            pending: false,
+          },
+        },
       },
       group: {
         value: {
@@ -1195,18 +1196,18 @@ describe('FormsManager', () => {
           email: 'n@n.com',
           phone: {
             number: 1,
-            prefix: 2
+            prefix: 2,
           },
-          arr: ['One', 'Two']
+          arr: ['One', 'Two'],
         },
         rawValue: {
           name: 'Netanel',
           email: 'n@n.com',
           phone: {
             number: 1,
-            prefix: 2
+            prefix: 2,
           },
-          arr: ['One', 'Two']
+          arr: ['One', 'Two'],
         },
         valid: true,
         dirty: false,
@@ -1227,7 +1228,7 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           email: {
             value: 'n@n.com',
@@ -1239,16 +1240,16 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
+            pending: false,
           },
           phone: {
             value: {
               number: 1,
-              prefix: 2
+              prefix: 2,
             },
             rawValue: {
               number: 1,
-              prefix: 2
+              prefix: 2,
             },
             valid: true,
             dirty: false,
@@ -1269,7 +1270,7 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
+                pending: false,
               },
               prefix: {
                 value: 2,
@@ -1281,9 +1282,9 @@ describe('FormsManager', () => {
                 errors: null,
                 touched: false,
                 pristine: true,
-                pending: false
-              }
-            }
+                pending: false,
+              },
+            },
           },
           arr: {
             value: ['One', 'Two'],
@@ -1295,14 +1296,14 @@ describe('FormsManager', () => {
             errors: null,
             touched: false,
             pristine: true,
-            pending: false
-          }
-        }
-      }
+            pending: false,
+          },
+        },
+      },
     });
   }));
 
-  it('should listen to changes - control', fakeAsync(() => {
+  it('should listen to changes - control (2)', fakeAsync(() => {
     const spy = jest.fn();
     formsManager.selectControl('config').subscribe(spy);
     expect(spy).toHaveBeenCalledTimes(1);
@@ -1316,7 +1317,7 @@ describe('FormsManager', () => {
       errors: { required: true },
       touched: false,
       pristine: true,
-      pending: false
+      pending: false,
     });
     control.patchValue('Update!!!!');
     tick(301);
@@ -1331,7 +1332,7 @@ describe('FormsManager', () => {
       errors: null,
       touched: false,
       pristine: true,
-      pending: false
+      pending: false,
     });
   }));
 
@@ -1345,18 +1346,18 @@ describe('FormsManager', () => {
         email: null,
         phone: {
           number: null,
-          prefix: null
+          prefix: null,
         },
-        arr: []
+        arr: [],
       },
       rawValue: {
         name: null,
         email: null,
         phone: {
           number: null,
-          prefix: null
+          prefix: null,
         },
-        arr: []
+        arr: [],
       },
       valid: true,
       dirty: false,
@@ -1377,7 +1378,7 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
+          pending: false,
         },
         email: {
           value: null,
@@ -1389,16 +1390,16 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
+          pending: false,
         },
         phone: {
           value: {
             number: null,
-            prefix: null
+            prefix: null,
           },
           rawValue: {
             number: null,
-            prefix: null
+            prefix: null,
           },
           valid: true,
           dirty: false,
@@ -1419,7 +1420,7 @@ describe('FormsManager', () => {
               errors: null,
               touched: false,
               pristine: true,
-              pending: false
+              pending: false,
             },
             prefix: {
               value: null,
@@ -1431,9 +1432,9 @@ describe('FormsManager', () => {
               errors: null,
               touched: false,
               pristine: true,
-              pending: false
-            }
-          }
+              pending: false,
+            },
+          },
         },
         arr: {
           value: [],
@@ -1445,15 +1446,15 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
-        }
-      }
+          pending: false,
+        },
+      },
     });
     group.patchValue({
       phone: {
         number: 3,
-        prefix: 4
-      }
+        prefix: 4,
+      },
     });
     tick(301);
     expect(spy).toHaveBeenCalledTimes(2); // one before
@@ -1463,18 +1464,18 @@ describe('FormsManager', () => {
         email: null,
         phone: {
           number: 3,
-          prefix: 4
+          prefix: 4,
         },
-        arr: []
+        arr: [],
       },
       rawValue: {
         name: null,
         email: null,
         phone: {
           number: 3,
-          prefix: 4
+          prefix: 4,
         },
-        arr: []
+        arr: [],
       },
       valid: true,
       dirty: false,
@@ -1495,7 +1496,7 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
+          pending: false,
         },
         email: {
           value: null,
@@ -1507,16 +1508,16 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
+          pending: false,
         },
         phone: {
           value: {
             number: 3,
-            prefix: 4
+            prefix: 4,
           },
           rawValue: {
             number: 3,
-            prefix: 4
+            prefix: 4,
           },
           valid: true,
           dirty: false,
@@ -1537,7 +1538,7 @@ describe('FormsManager', () => {
               errors: null,
               touched: false,
               pristine: true,
-              pending: false
+              pending: false,
             },
             prefix: {
               value: 4,
@@ -1549,9 +1550,9 @@ describe('FormsManager', () => {
               errors: null,
               touched: false,
               pristine: true,
-              pending: false
-            }
-          }
+              pending: false,
+            },
+          },
         },
         arr: {
           value: [],
@@ -1563,9 +1564,9 @@ describe('FormsManager', () => {
           errors: null,
           touched: false,
           pristine: true,
-          pending: false
-        }
-      }
+          pending: false,
+        },
+      },
     });
   }));
 
@@ -1581,11 +1582,11 @@ describe('FormsManager', () => {
       invalid: true,
       disabled: false,
       errors: {
-        required: true
+        required: true,
       },
       touched: false,
       pristine: true,
-      pending: false
+      pending: false,
     });
   });
 
@@ -1624,6 +1625,7 @@ describe('FormsManager', () => {
     formsManager.selectErrors('group', 'phone.number').subscribe(spy);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(null);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     group.get('phone.number').setValidators(Validators.required);
     group.get('phone.number').updateValueAndValidity();
     tick(301);

@@ -1,11 +1,11 @@
-import { Rule, apply, branchAndMerge, chain, mergeWith, move, template, url, Tree, SchematicContext } from '@angular-devkit/schematics';
-
-import { getProjectPath, stringUtils, parseName, getProject } from '../utils';
+import { apply, branchAndMerge, chain, mergeWith, move, Rule, SchematicContext, template, Tree, url } from '@angular-devkit/schematics';
+import { getProject, getProjectPath, parseName, stringUtils } from '../utils';
 import { dasherize } from '../utils/string';
 
-function buildSelector(options: any, projectPrefix: string) {
+function buildSelector(options: any, projectPrefix: string): string {
   let selector = dasherize(options.name);
   if (options.prefix) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     selector = `${options.prefix}-${selector}`;
   } else if (options.prefix === undefined && projectPrefix) {
     selector = `${projectPrefix}-${selector}`;
@@ -14,7 +14,7 @@ function buildSelector(options: any, projectPrefix: string) {
   return selector;
 }
 
-export default function(options: any): Rule {
+export default function (options: any): Rule {
   return (host: Tree, context: SchematicContext) => {
     const project = getProject(host, options.project);
 
@@ -22,6 +22,7 @@ export default function(options: any): Rule {
 
     const parsedPath = parseName(options);
 
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     (parsedPath as any).path = parsedPath.path.replace(`${options.dirName}`, `${parsedPath.name}/`);
 
     options.name = parsedPath.name;
@@ -31,9 +32,9 @@ export default function(options: any): Rule {
     const templateSource = apply(url('./files'), [
       template({
         ...stringUtils,
-        ...(options as object)
-      } as any),
-      move(parsedPath.path)
+        ...options,
+      }),
+      move(parsedPath.path),
     ]);
 
     return chain([branchAndMerge(chain([mergeWith(templateSource)]))])(host, context);

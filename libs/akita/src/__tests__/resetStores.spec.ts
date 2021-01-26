@@ -5,20 +5,16 @@ import { Store } from '../lib/store';
 import { StoreConfig } from '../lib/storeConfig';
 
 akitaConfig({
-  resettable: true
+  resettable: true,
 });
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
-class TodosStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class TodosStore extends EntityStore<any, any> {}
 
 @StoreConfig({
-  name: 'auth'
+  name: 'auth',
 })
 class AuthStore extends Store<any> {
   constructor() {
@@ -26,7 +22,7 @@ class AuthStore extends Store<any> {
       id: null,
       firstName: '',
       lastName: '',
-      token: ''
+      token: '',
     });
   }
 }
@@ -36,7 +32,7 @@ class UiStore extends Store {
   constructor() {
     super({
       isChecked: false,
-      category: 'Category'
+      category: 'Category',
     });
   }
 }
@@ -51,7 +47,7 @@ auth._setState(() => {
     id: 1,
     firstName: 'Netanel',
     lastName: 'Basal',
-    token: 'token'
+    token: 'token',
   };
 });
 
@@ -63,7 +59,7 @@ describe('Reset store', () => {
         id: 1,
         firstName: 'Netanel',
         lastName: 'Basal',
-        token: 'token'
+        token: 'token',
       };
     });
   });
@@ -73,7 +69,7 @@ describe('Reset store', () => {
       entities: {},
       ids: [],
       loading: true,
-      error: null
+      error: null,
     };
 
     todos.reset();
@@ -86,9 +82,9 @@ describe('Reset store', () => {
         entities: {},
         ids: [],
         loading: true,
-        error: null
+        error: null,
       },
-      auth: { id: null, firstName: '', lastName: '', token: '' }
+      auth: { id: null, firstName: '', lastName: '', token: '' },
     };
     resetStores();
     expect({ todos: todos._value(), auth: auth._value() }).toEqual(expected);
@@ -100,30 +96,30 @@ describe('Reset store', () => {
         entities: {},
         ids: [],
         loading: true,
-        error: null
+        error: null,
       },
       auth: {
         id: 1,
         firstName: 'Netanel',
         lastName: 'Basal',
-        token: 'token'
-      }
+        token: 'token',
+      },
     };
     resetStores({ exclude: ['auth'] });
     expect({ todos: todos._value(), auth: auth._value() }).toEqual(expected);
   });
 
   it('should not reset store if resettable = true in global and false on decorator', () => {
-    uiStore.update(state => ({
+    uiStore.update(() => ({
       isChecked: true,
-      category: 'New Category'
+      category: 'New Category',
     }));
 
     resetStores();
 
     expect(uiStore.getValue()).toEqual({
       isChecked: true,
-      category: 'New Category'
+      category: 'New Category',
     });
   });
 });

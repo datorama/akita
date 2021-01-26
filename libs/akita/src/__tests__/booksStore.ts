@@ -1,10 +1,10 @@
 import { ActiveState, EntityState, EntityStore, ID, StoreConfig } from '..';
 
-export type TestBook = {
+export interface TestBook {
   id: ID;
   title: string;
   price: number;
-};
+}
 
 export interface TestBooksState extends EntityState<TestBook>, ActiveState {
   filter: string;

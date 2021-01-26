@@ -2,7 +2,9 @@ import { EntityStore, ID, StoreConfig } from '..';
 
 class Todo {
   id;
+
   title;
+
   completed;
 
   constructor(params: { id: ID; title: string; completed: boolean }) {

@@ -1,7 +1,7 @@
 import { timer } from 'rxjs';
 import { mapTo, tap } from 'rxjs/operators';
-import { persistState, PersistStateStorage } from '../lib/persistState';
 import { Store, StoreConfig } from '..';
+import { persistState, PersistStateStorage } from '../lib/persistState';
 import { tick } from './setup';
 
 function random(min: number, max: number) {
@@ -17,17 +17,21 @@ const asyncStorage: PersistStateStorage = {
     return timer(random(1000, 3000)).pipe(mapTo(cache[key]));
   },
   setItem(key, value) {
-    return timer(random(1000, 10000)).pipe(tap(() => (cache[key] = value)));
+    return timer(random(1000, 10000)).pipe(
+      tap(() => {
+        cache[key] = value;
+      })
+    );
   },
   clear() {
     cache = {};
-  }
+  },
 };
 
 persistState({ storage: asyncStorage });
 
 @StoreConfig({
-  name: 'auth'
+  name: 'auth',
 })
 class AuthStore extends Store<any> {
   constructor() {
@@ -64,6 +68,6 @@ describe('Persist state async', () => {
     store.update({ async: false });
     await tick();
     jest.runAllTimers();
-    expect(cache['AkitaStores'].auth.async).toBeFalsy();
+    expect(cache.AkitaStores.auth.async).toBeFalsy();
   });
 });

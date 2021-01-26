@@ -1,5 +1,5 @@
-import { SortByOptions } from './queryConfig';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { SortByOptions } from './queryConfig';
 import { QueryEntity } from './queryEntity';
 
 export interface HashMap<T> {
@@ -35,7 +35,7 @@ export interface SelectOptions<E> extends SortByOptions<E> {
 
 export type StateWithActive<State> = State & (ActiveState | MultiActiveState);
 export type UpdateStateCallback<State, NewState extends Partial<State> = Partial<State>> = (state: State) => NewState | void;
-export type UpsertStateCallback<State, NewState extends Partial<State> = Partial<State>> = (state: State | {}) => NewState;
+export type UpsertStateCallback<State, NewState extends Partial<State> = Partial<State>> = (state: State | Record<string, unknown>) => NewState;
 export type CreateStateCallback<State, NewState extends Partial<State>, IDType> = (id: IDType, newState: NewState) => State;
 export type UpdateEntityPredicate<E> = (entity: E) => boolean;
 export type ID = number | string;

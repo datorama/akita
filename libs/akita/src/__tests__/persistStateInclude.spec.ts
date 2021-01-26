@@ -1,48 +1,26 @@
 import { EntityStore } from '../lib/entityStore';
 import { persistState } from '../lib/persistState';
-import { Store } from '../lib/store';
 import { StoreConfig } from '../lib/storeConfig';
 import { tick } from './setup';
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
-class TodosStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class TodosStore extends EntityStore<any, any> {}
 
 @StoreConfig({
-  name: 'products'
+  name: 'products',
 })
-class ProductsStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class ProductsStore extends EntityStore<any, any> {}
 
 @StoreConfig({
-  name: 'cart'
+  name: 'cart',
 })
-class CartStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
-
-@StoreConfig({
-  name: 'auth'
-})
-class AuthStore extends Store<any> {
-  constructor() {
-    super({});
-  }
-}
+class CartStore extends EntityStore<any, any> {}
 
 describe('persistState - Include', () => {
   const storage = persistState({
-    include: ['todos']
+    include: ['todos'],
   });
 
   afterAll(() => storage.destroy());
@@ -50,7 +28,6 @@ describe('persistState - Include', () => {
   const todos = new TodosStore();
   const products = new ProductsStore();
   const cart = new CartStore();
-  const auth = new AuthStore();
 
   it('should start with initial state', async () => {
     await tick();
@@ -72,13 +49,13 @@ describe('persistState - Include', () => {
       todos: {
         entities: {
           '1': {
-            id: 1
-          }
+            id: 1,
+          },
         },
         error: null,
         ids: [1],
-        loading: false
-      }
+        loading: false,
+      },
     });
   });
 });

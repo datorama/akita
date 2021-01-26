@@ -1,10 +1,10 @@
-import { EntityState, StoreConfig, EntityStore, QueryEntity, ID } from '..';
+import { EntityState, EntityStore, ID, QueryEntity, StoreConfig } from '..';
 
 interface Article {
   id: ID;
 }
 
-interface ArticlesState extends EntityState<Article> {}
+type ArticlesState = EntityState<Article>;
 
 @StoreConfig({ name: 'articles' })
 class ArticlesStore extends EntityStore<ArticlesState, Article> {}

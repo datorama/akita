@@ -1,12 +1,13 @@
 import { PreAddEntity } from './types';
 
-// @internal
-export function toEntitiesObject<E>(entities: E[], idKey: string, preAddEntity: PreAddEntity<E>) {
+/** @internal */
+export function toEntitiesObject<E>(entities: E[], idKey: string, preAddEntity: PreAddEntity<E>): { entities: Record<any, E>; ids: any[] } {
   const acc = {
     entities: {},
-    ids: []
+    ids: [],
   };
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const entity of entities) {
     // evaluate the middleware first to support dynamic ids
     const current = preAddEntity(entity);

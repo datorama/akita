@@ -1,35 +1,31 @@
-import { ID, IDS, ItemPredicate } from './types';
+import { MonoTypeOperatorFunction, Observable, OperatorFunction } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { coerceArray } from './coerceArray';
 import { DEFAULT_ID_KEY } from './defaultIDKey';
-import { distinctUntilChanged, map } from 'rxjs/operators';
-import { MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { isArray } from './isArray';
-import { isFunction } from './isFunction';
 import { isEmpty } from './isEmpty';
+import { isFunction } from './isFunction';
+import { ID, IDS, ItemPredicate } from './types';
 
-// @internal
-export function find<T>(collection: T[], idsOrPredicate: IDS | ItemPredicate, idKey: string) {
-  const result = [];
+/** @internal */
+export function find<T>(collection: T[], idsOrPredicate: IDS | ItemPredicate, idKey: string): T[] {
   if (isFunction(idsOrPredicate)) {
-    for (const entity of collection) {
-      if (idsOrPredicate(entity) === true) {
-        result.push(entity);
-      }
-    }
-  } else {
-    const toSet = coerceArray(idsOrPredicate).reduce((acc, current) => acc.add(current), new Set());
-
-    for (const entity of collection) {
-      if (toSet.has(entity[idKey])) {
-        result.push(entity);
-      }
-    }
+    return collection.filter((entity) => idsOrPredicate(entity) === true);
   }
 
-  return result;
+  const toSet = coerceArray(idsOrPredicate).reduce((acc, current) => acc.add(current), new Set());
+  return collection.filter((entity) => toSet.has(entity[idKey]));
 }
 
-// @internal
+/** @internal */
+function hasChange<T>(first: T[], second: T[]): boolean {
+  return second.some((currentItem) => {
+    const oldItem = first.find((prevItem) => prevItem === currentItem);
+    return oldItem === undefined;
+  });
+}
+
+/** @internal */
 export function distinctUntilArrayItemChanged<T>(): MonoTypeOperatorFunction<T[]> {
   return distinctUntilChanged((prevCollection: T[], currentCollection: T[]) => {
     if (prevCollection === currentCollection) {
@@ -58,26 +54,16 @@ export function distinctUntilArrayItemChanged<T>(): MonoTypeOperatorFunction<T[]
   });
 }
 
-// @internal
-function hasChange<T>(first: T[], second: T[]) {
-  const hasChange = second.some(currentItem => {
-    const oldItem = first.find(prevItem => prevItem === currentItem);
-    return oldItem === undefined;
-  });
-
-  return hasChange;
-}
-
 /**
  * Find items in a collection
  *
  * @example
  *
- *  selectEntity(1, 'comments').pipe(
+ * selectEntity(1, 'comments').pipe(
  *   arrayFind(comment => comment.text = 'text')
  * )
  */
-export function arrayFind<T>(ids: ItemPredicate<T>, idKey?: never): (source: Observable<T[]>) => Observable<T[]>;
+export function arrayFind<T>(ids: ItemPredicate<T>, idKey?: never): MonoTypeOperatorFunction<T[]>;
 /**
  * @example
  *
@@ -85,7 +71,7 @@ export function arrayFind<T>(ids: ItemPredicate<T>, idKey?: never): (source: Obs
  *   arrayFind(3)
  * )
  */
-export function arrayFind<T>(ids: ID, idKey?: string): (source: Observable<T[]>) => Observable<T>;
+export function arrayFind<T>(ids: ID, idKey?: string): OperatorFunction<T[], T>;
 /**
  * @example
  *
@@ -93,9 +79,9 @@ export function arrayFind<T>(ids: ID, idKey?: string): (source: Observable<T[]>)
  *   arrayFind([1, 2, 3])
  * )
  */
-export function arrayFind<T>(ids: ID[], idKey?: string): (source: Observable<T[]>) => Observable<T[]>;
-export function arrayFind<T>(idsOrPredicate: ID[] | ID | ItemPredicate<T>, idKey?: string): (source: Observable<T[]>) => Observable<T[] | T> {
-  return function(source: Observable<T[]>) {
+export function arrayFind<T>(ids: ID[], idKey?: string): MonoTypeOperatorFunction<T[]>;
+export function arrayFind<T>(idsOrPredicate: ID[] | ID | ItemPredicate<T>, idKey?: string): OperatorFunction<T[], T[] | T> {
+  return (source: Observable<T[]>): Observable<T | T[]> => {
     return source.pipe(
       map((collection: T[] | undefined | null) => {
         // which means the user deleted the root entity or set the collection to nil
@@ -105,7 +91,7 @@ export function arrayFind<T>(idsOrPredicate: ID[] | ID | ItemPredicate<T>, idKey
         return find(collection, idsOrPredicate, idKey || DEFAULT_ID_KEY);
       }),
       distinctUntilArrayItemChanged(),
-      map(value => {
+      map((value) => {
         if (isArray(value) === false) {
           return value;
         }

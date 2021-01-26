@@ -1,4 +1,4 @@
-import { dasherize, decamelize, camelize, classify, underscore, group, capitalize, featurePath, singular, plural } from './string';
+import { camelize, capitalize, classify, dasherize, decamelize, featurePath, group, plural, singular, underscore } from './string';
 
 export * from './parse-name';
 export * from './project';

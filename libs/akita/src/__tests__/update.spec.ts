@@ -1,11 +1,11 @@
 import { Subscription } from 'rxjs';
+import { getInitialEntitiesState } from '..';
 import { EntityStore } from '../lib/entityStore';
 import { QueryEntity } from '../lib/queryEntity';
-import { EntityState } from '../lib/types';
 import { StoreConfig } from '../lib/storeConfig';
-import { getInitialEntitiesState } from '..';
+import { EntityState } from '../lib/types';
 
-export type Widget = {
+type Widget = {
   id: number;
   options: {
     a: number[];
@@ -26,15 +26,15 @@ export type Widget = {
   };
 };
 
-export interface State extends EntityState<Widget> {}
+type State = EntityState<Widget>;
 
 const initialState: State = {
   ...getInitialEntitiesState(),
-  active: 1
+  active: 1,
 };
 
 @StoreConfig({ name: 'widgets' })
-export class WidgetsStore extends EntityStore<State, Widget> {
+class WidgetsStore extends EntityStore<State, Widget> {
   constructor() {
     super(initialState);
   }
@@ -60,41 +60,41 @@ describe('Update', () => {
       id: 1,
       options: {
         a: [1],
-        b: [1]
+        b: [1],
       },
       config: {
         date: {
           from: 'from',
-          to: 'to'
+          to: 'to',
         },
         filter: {
           a: 1,
-          b: 2
-        }
+          b: 2,
+        },
       },
       interactive: {
-        c: 3
-      }
+        c: 3,
+      },
     });
     store.add({
       id: 2,
       options: {
         a: [1],
-        b: [1]
+        b: [1],
       },
       config: {
         date: {
           from: 'from',
-          to: 'to'
+          to: 'to',
         },
         filter: {
           a: 1,
-          b: 2
-        }
+          b: 2,
+        },
       },
       interactive: {
-        c: 3
-      }
+        c: 3,
+      },
     });
   });
 
@@ -103,22 +103,22 @@ describe('Update', () => {
     spy = null;
     spy2 = null;
     subscription.unsubscribe();
-    subscription2 && subscription2.unsubscribe();
-    subscription3 && subscription2.unsubscribe();
+    if (subscription2) subscription2.unsubscribe();
+    if (subscription3) subscription2.unsubscribe();
     subscription = null;
     subscription2 = null;
     subscription3 = null;
   });
 
   it('should call two times - one init and one on update', () => {
-    subscription = query.selectEntity(1, widget => widget.interactive).subscribe(spy);
-    subscription2 = query.selectEntity(1, widget => widget.config).subscribe(spy2);
-    subscription3 = query.selectEntity(2, widget => widget.config).subscribe(spy3);
+    subscription = query.selectEntity(1, (widget) => widget.interactive).subscribe(spy);
+    subscription2 = query.selectEntity(1, (widget) => widget.config).subscribe(spy2);
+    subscription3 = query.selectEntity(2, (widget) => widget.config).subscribe(spy3);
 
     store.update(1, {
       interactive: {
-        c: 10
-      }
+        c: 10,
+      },
     });
     expect(spy).toHaveBeenCalledTimes(2);
     expect(spy2).toHaveBeenCalledTimes(1);
@@ -126,18 +126,18 @@ describe('Update', () => {
   });
 
   it('should work with nested objects', () => {
-    subscription = query.selectEntity(1, widget => widget.config.filter).subscribe(spy);
-    subscription2 = query.selectEntity(1, widget => widget.config.date).subscribe(spy2);
+    subscription = query.selectEntity(1, (widget) => widget.config.filter).subscribe(spy);
+    subscription2 = query.selectEntity(1, (widget) => widget.config.date).subscribe(spy2);
 
-    store.update(1, entity => {
+    store.update(1, (entity) => {
       return {
         config: {
           ...entity.config,
           filter: {
             ...entity.config.filter,
-            b: 100
-          }
-        }
+            b: 100,
+          },
+        },
       };
     });
 
@@ -147,18 +147,18 @@ describe('Update', () => {
   });
 
   it('should work with nested objects - 2', () => {
-    subscription = query.selectEntity(1, widget => widget.config.filter).subscribe(spy);
-    subscription2 = query.selectEntity(1, widget => widget.config.date).subscribe(spy2);
+    subscription = query.selectEntity(1, (widget) => widget.config.filter).subscribe(spy);
+    subscription2 = query.selectEntity(1, (widget) => widget.config.date).subscribe(spy2);
 
-    store.update(1, entity => {
+    store.update(1, (entity) => {
       return {
         config: {
           ...entity.config,
           filter: {
             a: 300,
-            b: 100
-          }
-        }
+            b: 100,
+          },
+        },
       };
     });
 
@@ -168,15 +168,15 @@ describe('Update', () => {
   });
 
   it('should work with arrays - push', () => {
-    subscription = query.selectEntity(1, widget => widget.options.a).subscribe(spy);
-    subscription2 = query.selectEntity(1, widget => widget.options.b).subscribe(spy2);
+    subscription = query.selectEntity(1, (widget) => widget.options.a).subscribe(spy);
+    subscription2 = query.selectEntity(1, (widget) => widget.options.b).subscribe(spy2);
 
-    store.update(1, entity => {
+    store.update(1, (entity) => {
       return {
         options: {
           ...entity.options,
-          a: [...entity.options.a, 2]
-        }
+          a: [...entity.options.a, 2],
+        },
       };
     });
 
@@ -187,15 +187,15 @@ describe('Update', () => {
   });
 
   it('should work with arrays - replace', () => {
-    subscription = query.selectEntity(1, widget => widget.options.a).subscribe(spy);
-    subscription2 = query.selectEntity(1, widget => widget.config).subscribe(spy2);
+    subscription = query.selectEntity(1, (widget) => widget.options.a).subscribe(spy);
+    subscription2 = query.selectEntity(1, (widget) => widget.config).subscribe(spy2);
 
-    store.update(1, entity => {
+    store.update(1, (entity) => {
       return {
         options: {
           ...entity.options,
-          a: [3, 4]
-        }
+          a: [3, 4],
+        },
       };
     });
 

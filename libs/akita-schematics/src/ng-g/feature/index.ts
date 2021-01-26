@@ -12,7 +12,14 @@ export default function (options: any): Rule {
   const withModule = options.withModule;
   const entityService = plain ? 'default' : options.entityService;
 
-  const serviceSchematic = entityService === EntityServiceType.http ? 'http-entity-service' : entityService === EntityServiceType.firebase ? 'firebase-entity-service' : 'akita-service';
+  let serviceSchematic: 'http-entity-service' | 'firebase-entity-service' | 'akita-service';
+  if (entityService === EntityServiceType.http) {
+    serviceSchematic = 'http-entity-service';
+  } else if (entityService === EntityServiceType.firebase) {
+    serviceSchematic = 'firebase-entity-service';
+  } else {
+    serviceSchematic = 'akita-service';
+  }
 
   let files = [
     schematic(plain ? 'store' : 'entity-store', {
@@ -90,6 +97,7 @@ export default function (options: any): Rule {
       }),
     ]);
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return (host: Tree, context: SchematicContext) => {
     return chain(files)(host, context);
   };

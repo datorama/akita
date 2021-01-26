@@ -9,5 +9,5 @@ export const FORMS_MANAGER_OPTIONS = new InjectionToken<FormsManagerOptions>('Fo
 
 export const defaultOptions: FormsManagerOptions = {
   debounceTime: 300,
-  updateStoreOnUnsubscribe: false
+  updateStoreOnUnsubscribe: false,
 };

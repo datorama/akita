@@ -1,14 +1,14 @@
 export const isBrowser = typeof window !== 'undefined';
 export const isNotBrowser = !isBrowser;
-// export const isNativeScript = typeof global !== 'undefined' && (<any>global).__runtimeVersion !== 'undefined'; TODO is this used?
-export const hasLocalStorage = () => {
+
+export const hasLocalStorage = (): boolean => {
   try {
     return typeof localStorage !== 'undefined';
   } catch {
     return false;
   }
 };
-export const hasSessionStorage = () => {
+export const hasSessionStorage = (): boolean => {
   try {
     return typeof sessionStorage !== 'undefined';
   } catch {

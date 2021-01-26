@@ -5,10 +5,10 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, finalize, map, tap } from 'rxjs/operators';
 import { errorAction, successAction } from './action-factory';
 import { isID } from './helpers';
-import { EntityServiceAction, HttpMethod, NgEntityServiceNotifier } from './ng-entity-service-notifier';
+import { NgEntityServiceNotifier } from './ng-entity-service-notifier';
 import { defaultConfig, mergeDeep, NgEntityServiceGlobalConfig, NG_ENTITY_SERVICE_CONFIG } from './ng-entity-service.config';
 import { NgEntityServiceLoader } from './ng-entity-service.loader';
-import { HttpAddConfig, HttpConfig, HttpDeleteConfig, HttpGetConfig, HttpUpdateConfig, NgEntityServiceParams } from './types';
+import { EntityServiceAction, HttpAddConfig, HttpConfig, HttpDeleteConfig, HttpGetConfig, HttpMethod, HttpUpdateConfig, NgEntityServiceParams } from './types';
 
 export const mapResponse = <T>(config?: HttpConfig<T>) => map((res) => (config && !!config.mapResponseFn ? config.mapResponseFn(res) : res));
 
@@ -46,7 +46,7 @@ export class NgEntityService<S extends EntityState = any> extends EntityService<
     this.dispatchError = errorAction(this.store.storeName, this.notifier);
   }
 
-  get api() {
+  get api(): string {
     if (!this.baseUrl) {
       throw new Error(`baseUrl of ${this.constructor.name} is not defined.`);
     }
@@ -54,19 +54,19 @@ export class NgEntityService<S extends EntityState = any> extends EntityService<
     return `${this.baseUrl}/${this.resourceName}`;
   }
 
-  get resourceName() {
+  get resourceName(): string {
     return this.mergedConfig.resourceName || this.store.storeName;
   }
 
-  setBaseUrl(baseUrl: string) {
+  setBaseUrl(baseUrl: string): void {
     this.baseUrl = baseUrl;
   }
 
-  getHttp() {
+  getHttp(): HttpClient {
     return this.http;
   }
 
-  getConfig() {
+  getConfig(): NgEntityServiceParams & NgEntityServiceGlobalConfig {
     return this.mergedConfig;
   }
 
@@ -335,6 +335,7 @@ export class NgEntityService<S extends EntityState = any> extends EntityService<
     }
 
     if (isDefined(id)) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       final += `/${id}`;
     }
 

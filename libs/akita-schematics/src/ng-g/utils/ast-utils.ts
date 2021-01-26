@@ -6,9 +6,9 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import * as ts from 'typescript';
-import { Change, InsertChange, NoopChange, createReplaceChange, ReplaceChange, RemoveChange, createRemoveChange } from './change';
 import { Path } from '@angular-devkit/core';
+import * as ts from 'typescript';
+import { Change, createRemoveChange, createReplaceChange, InsertChange, NoopChange, RemoveChange, ReplaceChange } from './change';
 
 /**
  * Find all nodes from the AST in the subtree of node of SyntaxKind kind.
@@ -139,11 +139,11 @@ function _angularImportsFromNode(node: ts.ImportDeclaration, _sourceFile: ts.Sou
       if (nb.kind == ts.SyntaxKind.NamespaceImport) {
         // This is of the form `import * as name from 'path'`. Return `name.`.
         return {
-          [(nb as ts.NamespaceImport).name.text + '.']: modulePath,
+          [nb.name.text + '.']: modulePath,
         };
       } else {
         // This is of the form `import {a,b,c} from 'path'`
-        const namedImports = nb as ts.NamedImports;
+        const namedImports = nb;
 
         return namedImports.elements
           .map((is: ts.ImportSpecifier) => (is.propertyName ? is.propertyName.text : is.name.text))
@@ -203,6 +203,7 @@ export function getDecoratorMetadata(source: ts.SourceFile, identifier: string, 
     .map((expr) => expr.arguments[0] as ts.ObjectLiteralExpression);
 }
 
+// eslint-disable-next-line complexity
 function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: string, metadataField: string, symbolName: string, importPath: string): Change[] {
   const nodes = getDecoratorMetadata(source, 'NgModule', '@angular/core');
   let node: any = nodes[0]; // tslint:disable-line:no-any
@@ -248,6 +249,7 @@ function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: strin
       const text = node.getFullText(source);
       const matches = text.match(/^\r?\n\s*/);
       if (matches.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         toInsert = `,${matches[0]}${metadataField}: [${symbolName}]`;
       } else {
         toInsert = `, ${metadataField}: [${symbolName}]`;
@@ -275,13 +277,14 @@ function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: strin
   }
 
   if (!node) {
+    // eslint-disable-next-line no-console
     console.log('No app module found. Please add your new class to your component.');
 
     return [];
   }
 
   if (Array.isArray(node)) {
-    const nodeArray = (node as {}) as Array<ts.Node>;
+    const nodeArray = node as Array<ts.Node>;
     const symbolsArray = nodeArray.map((node) => node.getText());
     if (symbolsArray.includes(symbolName)) {
       return [];
@@ -304,18 +307,21 @@ function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: strin
 
         let epos;
         if (effectsElements.length === 0) {
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
           epos = effectsArgs.getStart() + 1;
           return [new InsertChange(ngModulePath, epos, effectsSymbol)];
         } else {
-          const lastEffect = effectsElements[effectsElements.length - 1] as ts.Expression;
+          const lastEffect = effectsElements[effectsElements.length - 1];
           epos = lastEffect.getEnd();
           // Get the indentation of the last element, if any.
           const text: any = lastEffect.getFullText(source);
 
           let effectInsert: string;
           if (text.match('^\r?\r?\n')) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             effectInsert = `,${text.match(/^\r?\n\s+/)[0]}${effectsSymbol}`;
           } else {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             effectInsert = `, ${effectsSymbol}`;
           }
 
@@ -342,6 +348,7 @@ function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: strin
       // Get the indentation of the last element, if any.
       const text = node.getFullText(source);
       if (text.match('^\r?\r?\n')) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         toInsert = `,${text.match(/^\r?\n\s+/)[0]}${metadataField}: [${symbolName}]`;
       } else {
         toInsert = `, ${metadataField}: [${symbolName}]`;
@@ -355,6 +362,7 @@ function _addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: strin
     // Get the indentation of the last element, if any.
     const text = node.getFullText(source);
     if (text.match(/^\r?\n/)) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       toInsert = `,${text.match(/^\r?\n(\r?)\s+/)[0]}${symbolName}`;
     } else {
       toInsert = `, ${symbolName}`;
@@ -495,7 +503,7 @@ export function replaceImport(sourceFile: ts.SourceFile, path: Path, importFrom:
   };
 
   const changes = imports.map((p) => {
-    const importSpecifiers = (p.importClause!.namedBindings! as ts.NamedImports).elements;
+    const importSpecifiers = (p.importClause.namedBindings as ts.NamedImports).elements;
 
     const isAlreadyImported = importSpecifiers.map(importText).includes(importToBe);
 
@@ -509,7 +517,7 @@ export function replaceImport(sourceFile: ts.SourceFile, path: Path, importFrom:
 
       // identifier has not been imported, simply replace the old text with the new text
       if (!isAlreadyImported) {
-        return createReplaceChange(sourceFile, specifier!, importAsIs, importToBe);
+        return createReplaceChange(sourceFile, specifier, importAsIs, importToBe);
       }
 
       const nextIdentifier = importSpecifiers[index + 1];
@@ -522,7 +530,7 @@ export function replaceImport(sourceFile: ts.SourceFile, path: Path, importFrom:
       return createRemoveChange(sourceFile, specifier, specifier.getStart(sourceFile), specifier.getEnd());
     });
 
-    return importChanges.filter(Boolean) as (ReplaceChange | RemoveChange)[];
+    return importChanges.filter(Boolean);
   });
 
   return changes.reduce((imports, curr) => imports.concat(curr), []);

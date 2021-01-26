@@ -1,5 +1,6 @@
+/* eslint-disable max-classes-per-file */
+import { SchematicsException, Tree } from '@angular-devkit/schematics';
 import * as ts from 'typescript';
-import { Tree, SchematicsException } from '@angular-devkit/schematics';
 
 export interface Host {
   write(path: string, content: string): Promise<void>;
@@ -27,10 +28,13 @@ export interface Change {
  */
 export class NoopChange implements Change {
   description = 'No operation.';
+
   order = Infinity;
+
   path = null;
 
-  apply() {
+  // eslint-disable-next-line class-methods-use-this
+  apply(): Promise<void> {
     return Promise.resolve();
   }
 }
@@ -40,6 +44,7 @@ export class NoopChange implements Change {
  */
 export class InsertChange implements Change {
   order: number;
+
   description: string;
 
   constructor(public path: string, public pos: number, public toAdd: string) {
@@ -53,13 +58,11 @@ export class InsertChange implements Change {
   /**
    * This method does not insert spaces if there is none in the original string.
    */
-  apply(host: Host) {
-    return host.read(this.path).then(content => {
-      const prefix = content.substring(0, this.pos);
-      const suffix = content.substring(this.pos);
-
-      return host.write(this.path, `${prefix}${this.toAdd}${suffix}`);
-    });
+  async apply(host: Host): Promise<void> {
+    const content = await host.read(this.path);
+    const prefix = content.substring(0, this.pos);
+    const suffix = content.substring(this.pos);
+    return host.write(this.path, `${prefix}${this.toAdd}${suffix}`);
   }
 }
 
@@ -68,9 +71,10 @@ export class InsertChange implements Change {
  */
 export class RemoveChange implements Change {
   order: number;
+
   description: string;
 
-  constructor(public path: string, private pos: number, private toRemove: string) {
+  constructor(public path: string, private readonly pos: number, private readonly toRemove: string) {
     if (pos < 0) {
       throw new Error('Negative positions are invalid');
     }
@@ -78,14 +82,12 @@ export class RemoveChange implements Change {
     this.order = pos;
   }
 
-  apply(host: Host): Promise<void> {
-    return host.read(this.path).then(content => {
-      const prefix = content.substring(0, this.pos);
-      const suffix = content.substring(this.pos + this.toRemove.length);
-
-      // TODO: throw error if toRemove doesn't match removed string.
-      return host.write(this.path, `${prefix}${suffix}`);
-    });
+  async apply(host: Host): Promise<void> {
+    const content = await host.read(this.path);
+    const prefix = content.substring(0, this.pos);
+    const suffix = content.substring(this.pos + this.toRemove.length);
+    // TODO: throw error if toRemove doesn't match removed string.
+    return host.write(this.path, `${prefix}${suffix}`);
   }
 }
 
@@ -94,9 +96,10 @@ export class RemoveChange implements Change {
  */
 export class ReplaceChange implements Change {
   order: number;
+
   description: string;
 
-  constructor(public path: string, private pos: number, private oldText: string, private newText: string) {
+  constructor(public path: string, private readonly pos: number, private readonly oldText: string, private readonly newText: string) {
     if (pos < 0) {
       throw new Error('Negative positions are invalid');
     }
@@ -104,42 +107,118 @@ export class ReplaceChange implements Change {
     this.order = pos;
   }
 
-  apply(host: Host): Promise<void> {
-    return host.read(this.path).then(content => {
-      const prefix = content.substring(0, this.pos);
-      const suffix = content.substring(this.pos + this.oldText.length);
-      const text = content.substring(this.pos, this.pos + this.oldText.length);
-
-      if (text !== this.oldText) {
-        return Promise.reject(new Error(`Invalid replace: "${text}" != "${this.oldText}".`));
-      }
-
-      // TODO: throw error if oldText doesn't match removed string.
-      return host.write(this.path, `${prefix}${this.newText}${suffix}`);
-    });
+  async apply(host: Host): Promise<void> {
+    const content = await host.read(this.path);
+    const prefix = content.substring(0, this.pos);
+    const suffix = content.substring(this.pos + this.oldText.length);
+    const text = content.substring(this.pos, this.pos + this.oldText.length);
+    if (text !== this.oldText) {
+      return Promise.reject(new Error(`Invalid replace: "${text}" != "${this.oldText}".`));
+    }
+    // TODO: throw error if oldText doesn't match removed string.
+    return host.write(this.path, `${prefix}${this.newText}${suffix}`);
   }
 }
 
-export function insertImport(source: ts.SourceFile, fileToEdit: string, symbolName: string, fileName: string, isDefault = false) {
+/**
+ * Find all nodes from the AST in the subtree of node of SyntaxKind kind.
+ * @param node
+ * @param kind
+ * @param max The maximum number of items to return.
+ * @return all nodes of kind, or [] if none is found
+ */
+export function findNodes(node: ts.Node, kind: ts.SyntaxKind, max = Infinity): ts.Node[] {
+  if (!node || max === 0) {
+    return [];
+  }
+
+  const arr: ts.Node[] = [];
+  if (node.kind === kind) {
+    arr.push(node);
+    // eslint-disable-next-line no-param-reassign
+    max -= 1; // !WARN side effect affecting parameter which is used in recursive call
+  }
+
+  if (max > 0) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const child of node.getChildren()) {
+      // TODO fix: Function declared in a loop contains unsafe references to variable 'max'
+      // eslint-disable-next-line no-loop-func
+      findNodes(child, kind, max).forEach((childNode) => {
+        if (max > 0) {
+          arr.push(childNode);
+        }
+        // eslint-disable-next-line no-param-reassign
+        max -= 1; // !WARN side effect affecting parameter which is used in recursive call
+      });
+
+      if (max <= 0) {
+        break;
+      }
+    }
+  }
+
+  return arr;
+}
+
+/**
+ * Helper for sorting nodes.
+ * @return function to sort nodes in increasing order of position in sourceFile
+ */
+function nodesByPosition(first: ts.Node, second: ts.Node): number {
+  return first.getStart() - second.getStart();
+}
+
+/**
+ * Insert `toInsert` after the last occurence of `ts.SyntaxKind[nodes[i].kind]`
+ * or after the last of occurence of `syntaxKind` if the last occurence is a sub child
+ * of ts.SyntaxKind[nodes[i].kind] and save the changes in file.
+ *
+ * @param nodes insert after the last occurence of nodes
+ * @param toInsert string to insert
+ * @param file file to insert changes into
+ * @param fallbackPos position to insert if toInsert happens to be the first occurence
+ * @param syntaxKind the ts.SyntaxKind of the subchildren to insert after
+ * @return Change instance
+ * @throw Error if toInsert is first occurence but fall back is not set
+ */
+export function insertAfterLastOccurrence(nodes: ts.Node[], toInsert: string, file: string, fallbackPos: number, syntaxKind?: ts.SyntaxKind): Change {
+  // sort() has a side effect, so make a copy so that we won't overwrite the parent's object.
+  let lastItem = [...nodes].sort(nodesByPosition).pop();
+  if (!lastItem) {
+    throw new Error();
+  }
+  if (syntaxKind) {
+    lastItem = findNodes(lastItem, syntaxKind).sort(nodesByPosition).pop();
+  }
+  if (!lastItem && fallbackPos === undefined) {
+    throw new Error(`tried to insert ${toInsert} as first occurence with no fallback position`);
+  }
+  const lastItemPosition: number = lastItem ? lastItem.getEnd() : fallbackPos;
+
+  return new InsertChange(file, lastItemPosition, toInsert);
+}
+
+export function insertImport(source: ts.SourceFile, fileToEdit: string, symbolName: string, fileName: string, isDefault = false): NoopChange | Change {
   const rootNode = source;
   const allImports = findNodes(rootNode, ts.SyntaxKind.ImportDeclaration);
 
   // get nodes that map to import statements from the file fileName
-  const relevantImports = allImports.filter(node => {
+  const relevantImports = allImports.filter((node) => {
     // StringLiteral of the ImportDeclaration is the import file (fileName in this case).
     const importFiles = node
       .getChildren()
-      .filter(child => child.kind === ts.SyntaxKind.StringLiteral)
-      .map(n => (n as ts.StringLiteral).text);
+      .filter((child) => child.kind === ts.SyntaxKind.StringLiteral)
+      .map((n) => (n as ts.StringLiteral).text);
 
-    return importFiles.filter(file => file === fileName).length === 1;
+    return importFiles.filter((file) => file === fileName).length === 1;
   });
 
   if (relevantImports.length > 0) {
     let importsAsterisk = false;
     // imports from import file
     const imports: ts.Node[] = [];
-    relevantImports.forEach(n => {
+    relevantImports.forEach((n) => {
       Array.prototype.push.apply(imports, findNodes(n, ts.SyntaxKind.Identifier));
       if (findNodes(n, ts.SyntaxKind.AsteriskToken).length > 0) {
         importsAsterisk = true;
@@ -151,11 +230,12 @@ export function insertImport(source: ts.SourceFile, fileToEdit: string, symbolNa
       return new NoopChange();
     }
 
-    const importTextNodes = imports.filter(n => (n as ts.Identifier).text === symbolName);
+    const importTextNodes = imports.filter((n) => (n as ts.Identifier).text === symbolName);
 
     // insert import if it's not there
     if (importTextNodes.length === 0) {
-      const fallbackPos = findNodes(relevantImports[0], ts.SyntaxKind.CloseBraceToken)[0].getStart() || findNodes(relevantImports[0], ts.SyntaxKind.FromKeyword)[0].getStart();
+      const fallbackPos =
+        findNodes(relevantImports[0], ts.SyntaxKind.CloseBraceToken)[0].getStart() || findNodes(relevantImports[0], ts.SyntaxKind.FromKeyword)[0].getStart();
 
       return insertAfterLastOccurrence(imports, `, ${symbolName}`, fileToEdit, fallbackPos);
     }
@@ -174,44 +254,9 @@ export function insertImport(source: ts.SourceFile, fileToEdit: string, symbolNa
   // if there are no imports or 'use strict' statement, insert import at beginning of file
   const insertAtBeginning = allImports.length === 0 && useStrict.length === 0;
   const separator = insertAtBeginning ? '' : ';\n';
-  const toInsert = `${separator}import ${open}${symbolName}${close}` + ` from '${fileName}'${insertAtBeginning ? ';\n' : ''}`;
+  const toInsert = `${separator}import ${open}${symbolName}${close} from '${fileName}'${insertAtBeginning ? ';\n' : ''}`;
 
   return insertAfterLastOccurrence(allImports, toInsert, fileToEdit, fallbackPos, ts.SyntaxKind.StringLiteral);
-}
-
-/**
- * Find all nodes from the AST in the subtree of node of SyntaxKind kind.
- * @param node
- * @param kind
- * @param max The maximum number of items to return.
- * @return all nodes of kind, or [] if none is found
- */
-export function findNodes(node: ts.Node, kind: ts.SyntaxKind, max = Infinity): ts.Node[] {
-  if (!node || max == 0) {
-    return [];
-  }
-
-  const arr: ts.Node[] = [];
-  if (node.kind === kind) {
-    arr.push(node);
-    max--;
-  }
-  if (max > 0) {
-    for (const child of node.getChildren()) {
-      findNodes(child, kind, max).forEach(node => {
-        if (max > 0) {
-          arr.push(node);
-        }
-        max--;
-      });
-
-      if (max <= 0) {
-        break;
-      }
-    }
-  }
-
-  return arr;
 }
 
 /**
@@ -244,64 +289,24 @@ export function findNode(node: ts.Node, kind: ts.SyntaxKind, text: string): ts.N
   }
 
   let foundNode: ts.Node | null = null;
-  ts.forEachChild(node, childNode => {
+  ts.forEachChild(node, (childNode) => {
     foundNode = foundNode || findNode(childNode, kind, text);
   });
 
   return foundNode;
 }
 
-/**
- * Helper for sorting nodes.
- * @return function to sort nodes in increasing order of position in sourceFile
- */
-function nodesByPosition(first: ts.Node, second: ts.Node): number {
-  return first.getStart() - second.getStart();
-}
-
-/**
- * Insert `toInsert` after the last occurence of `ts.SyntaxKind[nodes[i].kind]`
- * or after the last of occurence of `syntaxKind` if the last occurence is a sub child
- * of ts.SyntaxKind[nodes[i].kind] and save the changes in file.
- *
- * @param nodes insert after the last occurence of nodes
- * @param toInsert string to insert
- * @param file file to insert changes into
- * @param fallbackPos position to insert if toInsert happens to be the first occurence
- * @param syntaxKind the ts.SyntaxKind of the subchildren to insert after
- * @return Change instance
- * @throw Error if toInsert is first occurence but fall back is not set
- */
-export function insertAfterLastOccurrence(nodes: ts.Node[], toInsert: string, file: string, fallbackPos: number, syntaxKind?: ts.SyntaxKind): Change {
-  // sort() has a side effect, so make a copy so that we won't overwrite the parent's object.
-  let lastItem = [...nodes].sort(nodesByPosition).pop();
-  if (!lastItem) {
-    throw new Error();
-  }
-  if (syntaxKind) {
-    lastItem = findNodes(lastItem, syntaxKind)
-      .sort(nodesByPosition)
-      .pop();
-  }
-  if (!lastItem && fallbackPos == undefined) {
-    throw new Error(`tried to insert ${toInsert} as first occurence with no fallback position`);
-  }
-  const lastItemPosition: number = lastItem ? lastItem.getEnd() : fallbackPos;
-
-  return new InsertChange(file, lastItemPosition, toInsert);
-}
-
 export function getContentOfKeyLiteral(_source: ts.SourceFile, node: ts.Node): string | null {
-  if (node.kind == ts.SyntaxKind.Identifier) {
+  if (node.kind === ts.SyntaxKind.Identifier) {
     return (node as ts.Identifier).text;
-  } else if (node.kind == ts.SyntaxKind.StringLiteral) {
-    return (node as ts.StringLiteral).text;
-  } else {
-    return null;
   }
+  if (node.kind === ts.SyntaxKind.StringLiteral) {
+    return (node as ts.StringLiteral).text;
+  }
+  return null;
 }
 
-function _angularImportsFromNode(node: ts.ImportDeclaration, _sourceFile: ts.SourceFile): { [name: string]: string } {
+function _angularImportsFromNode(node: ts.ImportDeclaration): { [name: string]: string } {
   const ms = node.moduleSpecifier;
   let modulePath: string;
   switch (ms.kind) {
@@ -320,56 +325,50 @@ function _angularImportsFromNode(node: ts.ImportDeclaration, _sourceFile: ts.Sou
     if (node.importClause.name) {
       // This is of the form `import Name from 'path'`. Ignore.
       return {};
-    } else if (node.importClause.namedBindings) {
+    }
+    if (node.importClause.namedBindings) {
       const nb = node.importClause.namedBindings;
-      if (nb.kind == ts.SyntaxKind.NamespaceImport) {
+      if (nb.kind === ts.SyntaxKind.NamespaceImport) {
         // This is of the form `import * as name from 'path'`. Return `name.`.
         return {
-          [(nb as ts.NamespaceImport).name.text + '.']: modulePath
+          [`${nb.name.text}.`]: modulePath,
         };
-      } else {
-        // This is of the form `import {a,b,c} from 'path'`
-        const namedImports = nb as ts.NamedImports;
-
-        return namedImports.elements
-          .map((is: ts.ImportSpecifier) => (is.propertyName ? is.propertyName.text : is.name.text))
-          .reduce((acc: { [name: string]: string }, curr: string) => {
-            acc[curr] = modulePath;
-
-            return acc;
-          }, {});
       }
+      // This is of the form `import {a,b,c} from 'path'`
+      const namedImports = nb;
+
+      return namedImports.elements
+        .map((is: ts.ImportSpecifier) => (is.propertyName ? is.propertyName.text : is.name.text))
+        .reduce((acc: { [name: string]: string }, curr: string) => {
+          acc[curr] = modulePath;
+
+          return acc;
+        }, {});
     }
 
     return {};
-  } else {
-    // This is of the form `import 'path';`. Nothing to do.
-    return {};
   }
+  // This is of the form `import 'path';`. Nothing to do.
+  return {};
 }
 
 export function getDecoratorMetadata(source: ts.SourceFile, identifier: string, module: string): ts.Node[] {
   const angularImports: { [name: string]: string } = findNodes(source, ts.SyntaxKind.ImportDeclaration)
-    .map((node: ts.ImportDeclaration) => _angularImportsFromNode(node, source))
-    .reduce((acc: { [name: string]: string }, current: { [name: string]: string }) => {
-      for (const key of Object.keys(current)) {
-        acc[key] = current[key];
-      }
-
-      return acc;
-    }, {});
+    .map((node: ts.ImportDeclaration) => _angularImportsFromNode(node))
+    .reduce((acc: { [name: string]: string }, current: { [name: string]: string }) => ({ ...acc, ...current }), {});
 
   return getSourceNodes(source)
-    .filter(node => {
-      return node.kind == ts.SyntaxKind.Decorator && (node as ts.Decorator).expression.kind == ts.SyntaxKind.CallExpression;
+    .filter((node) => {
+      return node.kind === ts.SyntaxKind.Decorator && (node as ts.Decorator).expression.kind === ts.SyntaxKind.CallExpression;
     })
-    .map(node => (node as ts.Decorator).expression as ts.CallExpression)
-    .filter(expr => {
-      if (expr.expression.kind == ts.SyntaxKind.Identifier) {
+    .map((node) => (node as ts.Decorator).expression as ts.CallExpression)
+    .filter((expr) => {
+      if (expr.expression.kind === ts.SyntaxKind.Identifier) {
         const id = expr.expression as ts.Identifier;
 
-        return id.getFullText(source) == identifier && angularImports[id.getFullText(source)] === module;
-      } else if (expr.expression.kind == ts.SyntaxKind.PropertyAccessExpression) {
+        return id.getFullText(source) === identifier && angularImports[id.getFullText(source)] === module;
+      }
+      if (expr.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
         // This covers foo.NgModule when importing * as foo.
         const paExpr = expr.expression as ts.PropertyAccessExpression;
         // If the left expression is not an identifier, just give up at that point.
@@ -380,13 +379,13 @@ export function getDecoratorMetadata(source: ts.SourceFile, identifier: string, 
         const id = paExpr.name.text;
         const moduleId = (paExpr.expression as ts.Identifier).getText(source);
 
-        return id === identifier && angularImports[moduleId + '.'] === module;
+        return id === identifier && angularImports[`${moduleId}.`] === module;
       }
 
       return false;
     })
-    .filter(expr => expr.arguments[0] && expr.arguments[0].kind == ts.SyntaxKind.ObjectLiteralExpression)
-    .map(expr => expr.arguments[0] as ts.ObjectLiteralExpression);
+    .filter((expr) => expr.arguments[0] && expr.arguments[0].kind === ts.SyntaxKind.ObjectLiteralExpression)
+    .map((expr) => expr.arguments[0] as ts.ObjectLiteralExpression);
 }
 
 function findClassDeclarationParent(node: ts.Node): ts.ClassDeclaration | undefined {
@@ -421,9 +420,17 @@ export function getFirstNgModuleName(source: ts.SourceFile): string | undefined 
   return moduleClass.name.text;
 }
 
-export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath: string, metadataField: string, symbolName: string, importPath: string | null = null, skipImport = true): Change[] {
+// eslint-disable-next-line complexity
+export function addSymbolToNgModuleMetadata(
+  source: ts.SourceFile,
+  ngModulePath: string,
+  metadataField: string,
+  symbolName: string,
+  importPath: string | null = null,
+  skipImport = true
+): Change[] {
   const nodes = getDecoratorMetadata(source, 'NgModule', '@angular/core');
-  let node: any = nodes[0]; // tslint:disable-line:no-any
+  let node: any = nodes[0];
 
   // Find the decorator declaration.
   if (!node) {
@@ -432,31 +439,31 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
 
   // Get all the children property assignment of object literals.
   const matchingProperties: ts.ObjectLiteralElement[] = (node as ts.ObjectLiteralExpression).properties
-    .filter(prop => prop.kind == ts.SyntaxKind.PropertyAssignment)
+    .filter((prop) => prop.kind === ts.SyntaxKind.PropertyAssignment)
     // Filter out every fields that's not "metadataField". Also handles string literals
     // (but not expressions).
     .filter((prop: ts.PropertyAssignment) => {
-      const name = prop.name;
+      const { name } = prop;
       switch (name.kind) {
         case ts.SyntaxKind.Identifier:
-          return (name as ts.Identifier).getText(source) == metadataField;
+          return name.getText(source) === metadataField;
         case ts.SyntaxKind.StringLiteral:
-          return (name as ts.StringLiteral).text == metadataField;
+          return name.text === metadataField;
+        default:
+          return false;
       }
-
-      return false;
     });
 
   // Get the last node of the array literal.
   if (!matchingProperties) {
     return [];
   }
-  if (matchingProperties.length == 0) {
+  if (matchingProperties.length === 0) {
     // We haven't found the field in the metadata declaration. Insert a new field.
     const expr = node as ts.ObjectLiteralExpression;
     let position: number;
     let toInsert: string;
-    if (expr.properties.length == 0) {
+    if (expr.properties.length === 0) {
       position = expr.getEnd() - 1;
       toInsert = `  ${metadataField}: [${symbolName}]\n`;
     } else {
@@ -466,6 +473,7 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
       const text = node.getFullText(source);
       const matches = text.match(/^\r?\n\s*/);
       if (matches && matches.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         toInsert = `,${matches[0]}${metadataField}: [${symbolName}]`;
       } else {
         toInsert = `, ${metadataField}: [${symbolName}]`;
@@ -473,12 +481,11 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
     }
     if (importPath !== null) {
       return [
-        new InsertChange(ngModulePath, position, toInsert)
+        new InsertChange(ngModulePath, position, toInsert),
         // insertImport(source, ngModulePath, symbolName.replace(/\..*$/, ''), importPath)
       ];
-    } else {
-      return [new InsertChange(ngModulePath, position, toInsert)];
     }
+    return [new InsertChange(ngModulePath, position, toInsert)];
   }
   const assignment = matchingProperties[0] as ts.PropertyAssignment;
 
@@ -488,7 +495,7 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
   }
 
   const arrLiteral = assignment.initializer as ts.ArrayLiteralExpression;
-  if (arrLiteral.elements.length == 0) {
+  if (arrLiteral.elements.length === 0) {
     // Forward the property.
     node = arrLiteral;
   } else {
@@ -502,8 +509,8 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
   }
 
   if (Array.isArray(node)) {
-    const nodeArray = (node as {}) as Array<ts.Node>;
-    const symbolsArray = nodeArray.map(node => node.getText());
+    const nodeArray = node as ts.Node[];
+    const symbolsArray = nodeArray.map((nodeElem) => nodeElem.getText());
     if (symbolsArray.includes(symbolName)) {
       return [];
     }
@@ -513,37 +520,42 @@ export function addSymbolToNgModuleMetadata(source: ts.SourceFile, ngModulePath:
 
   let toInsert: string;
   let position = node.getEnd();
-  if (node.kind == ts.SyntaxKind.ObjectLiteralExpression) {
+  if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
     // We haven't found the field in the metadata declaration. Insert a new
     // field.
     const expr = node as ts.ObjectLiteralExpression;
-    if (expr.properties.length == 0) {
+    if (expr.properties.length === 0) {
       position = expr.getEnd() - 1;
       toInsert = `  ${symbolName}\n`;
     } else {
       // Get the indentation of the last element, if any.
       const text = node.getFullText(source);
       if (text.match(/^\r?\r?\n/)) {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         toInsert = `,${text.match(/^\r?\n\s*/)[0]}${symbolName}`;
       } else {
         toInsert = `, ${symbolName}`;
       }
     }
-  } else if (node.kind == ts.SyntaxKind.ArrayLiteralExpression) {
+  } else if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
     // We found the field but it's empty. Insert it just before the `]`.
-    position--;
+    position -= 1;
     toInsert = `${symbolName}`;
   } else {
     // Get the indentation of the last element, if any.
     const text = node.getFullText(source);
     if (text.match(/^\r?\n/)) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       toInsert = `,${text.match(/^\r?\n(\r?)\s*/)[0]}${symbolName}`;
     } else {
       toInsert = `, ${symbolName}`;
     }
   }
   if (importPath !== null) {
-    return [new InsertChange(ngModulePath, position, toInsert), skipImport ? new NoopChange() : insertImport(source, ngModulePath, symbolName.replace(/\..*$/, ''), importPath)];
+    return [
+      new InsertChange(ngModulePath, position, toInsert),
+      skipImport ? new NoopChange() : insertImport(source, ngModulePath, symbolName.replace(/\..*$/, ''), importPath),
+    ];
   }
 
   return [new InsertChange(ngModulePath, position, toInsert)];
@@ -598,7 +610,7 @@ export function addEntryComponentToModule(source: ts.SourceFile, modulePath: str
 export function isImported(source: ts.SourceFile, classifiedName: string, importPath: string): boolean {
   const allNodes = getSourceNodes(source);
   const matchingNodes = allNodes
-    .filter(node => node.kind === ts.SyntaxKind.ImportDeclaration)
+    .filter((node) => node.kind === ts.SyntaxKind.ImportDeclaration)
     .filter((imp: ts.ImportDeclaration) => imp.moduleSpecifier.kind === ts.SyntaxKind.StringLiteral)
     .filter((imp: ts.ImportDeclaration) => {
       return (imp.moduleSpecifier as ts.StringLiteral).text === importPath;
@@ -607,7 +619,7 @@ export function isImported(source: ts.SourceFile, classifiedName: string, import
       if (!imp.importClause) {
         return false;
       }
-      const nodes = findNodes(imp.importClause, ts.SyntaxKind.ImportSpecifier).filter(n => n.getText() === classifiedName);
+      const nodes = findNodes(imp.importClause, ts.SyntaxKind.ImportSpecifier).filter((n) => n.getText() === classifiedName);
 
       return nodes.length > 0;
     });
@@ -617,11 +629,13 @@ export function isImported(source: ts.SourceFile, classifiedName: string, import
 
 export function getModuleFile(host: Tree, modulePath): ts.SourceFile {
   if (!host.exists(modulePath)) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new SchematicsException(`File ${modulePath} does not exist.`);
   }
 
   const text = host.read(modulePath);
   if (text === null) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new SchematicsException(`File ${modulePath} does not exist.`);
   }
   const sourceText = text.toString('utf-8');
@@ -632,11 +646,12 @@ export function getModuleFile(host: Tree, modulePath): ts.SourceFile {
 export function applyChanges(host: Tree, path: string, changes: InsertChange[]): Tree {
   const recorder = host.beginUpdate(path);
 
-  for (const change of changes) {
-    if (change instanceof InsertChange) {
+  changes
+    .filter((change) => change instanceof InsertChange)
+    .forEach((change) => {
       recorder.insertLeft(change.pos, change.toAdd);
-    }
-  }
+    });
+
   host.commitUpdate(recorder);
 
   return host;

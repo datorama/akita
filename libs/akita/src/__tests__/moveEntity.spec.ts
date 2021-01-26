@@ -1,12 +1,12 @@
+import { EntityStore, QueryEntity, StoreConfig } from '..';
 import { EntityState } from '../lib/types';
-import { StoreConfig, EntityStore, QueryEntity } from '..';
 
 interface Article {
   id: number;
   title: string;
 }
 
-interface ArticlesState extends EntityState<Article> {}
+type ArticlesState = EntityState<Article>;
 
 @StoreConfig({ name: 'articles' })
 class ArticlesStore extends EntityStore<ArticlesState> {}
@@ -20,7 +20,7 @@ describe('Move', () => {
   it('should move entity in the collection', () => {
     const data = Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,
-      title: i.toString()
+      title: i.toString(),
     }));
 
     store.set(data);

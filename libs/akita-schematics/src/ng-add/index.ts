@@ -6,7 +6,7 @@ import { Schema } from './schema';
 import { addProviderToModule, applyChanges, getModuleFile, insertImport, isImported } from './utils';
 
 function addPackageJsonDependencies(options: Schema): Rule {
-  return (host: Tree, context: SchematicContext) => {
+  return (host: Tree, context: SchematicContext): Tree => {
     const dependencies: NodeDependency[] = [
       {
         type: NodeDependencyType.Default,
@@ -57,7 +57,7 @@ function addPackageJsonDependencies(options: Schema): Rule {
 }
 
 function installPackageJsonDependencies(): Rule {
-  return (host: Tree, context: SchematicContext) => {
+  return (host: Tree, context: SchematicContext): Tree => {
     context.addTask(new NodePackageInstallTask());
     context.logger.log('info', `🔍 Installing packages...`);
 
@@ -77,15 +77,16 @@ function getTsSourceFile(host: Tree, path: string): ts.SourceFile {
 }
 
 function injectImports(options: Schema): Rule {
-  return (host: Tree, context: SchematicContext) => {
+  // eslint-disable-next-line complexity
+  return (host: Tree): Tree | undefined => {
     if (!options.router && !options.devtools && !options.httpEntityService && !options.firebaseEntityService) {
-      return;
+      return undefined;
     }
     const workspace = getWorkspace(host);
     const project = getProjectFromWorkspace(
       workspace,
       // Takes the first project in case it's not provided by CLI
-      options.project ? options.project : Object.keys(workspace['projects'])[0]
+      options.project ? options.project : Object.keys(workspace.projects)[0]
     );
     const modulePath = getAppModulePath(host, (project as any).architect.build.options.main);
 
@@ -135,8 +136,9 @@ function injectImports(options: Schema): Rule {
 }
 
 function setSchematicsAsDefault(): Rule {
-  return (host: Tree, context: SchematicContext) => {
-    const exec = require('child_process').exec;
+  return (host: Tree, context: SchematicContext): Tree => {
+    // eslint-disable-next-line global-require,@typescript-eslint/no-var-requires
+    const { exec } = require('child_process');
 
     exec('ng config cli.defaultCollection @datorama/akita', () => {
       context.logger.log('info', `✅️ Setting Akita schematics as default`);
@@ -146,12 +148,13 @@ function setSchematicsAsDefault(): Rule {
 }
 
 function addModuleToImports(options: Schema): Rule {
-  return (host: Tree, context: SchematicContext) => {
+  // eslint-disable-next-line complexity
+  return (host: Tree, context: SchematicContext): Tree => {
     const workspace = getWorkspace(host);
     const project = getProjectFromWorkspace(
       workspace,
       // Takes the first project in case it's not provided by CLI
-      options.project ? options.project : Object.keys(workspace['projects'])[0]
+      options.project ? options.project : Object.keys(workspace.projects)[0]
     );
 
     let importDevtools = '';
@@ -202,6 +205,7 @@ function addModuleToImports(options: Schema): Rule {
 }
 
 function log(): Rule {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   return (host: Tree, context: SchematicContext) => {
     context.logger.log('info', `👏 Create your first entity store by running: ng g af todos/todos`);
 

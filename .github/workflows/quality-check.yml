@@ -1,0 +1,79 @@
+name: Quality Check
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  dependencies:
+    name: Cache dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: node_modules # !WARN does not work if running multiple node versions, instead use https://github.com/actions/cache/blob/master/examples.md#node---yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Yarn Install
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: yarn install --frozen-lockfile
+
+  build:
+    name: Build libraries
+    runs-on: ubuntu-latest
+    needs: [dependencies]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Restore dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Run builders
+        run: yarn nx run-many --target=build --configuration=production --projects=akita,akita-ng-entity-service,akita-ng-router-store,akita-ng-devtools,akita-ng-forms-manager,akita-schematics,akita-ng-effects
+
+  lint:
+    name: Lint libraries
+    runs-on: ubuntu-latest
+    needs: [dependencies]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Restore dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Run linting
+        run: yarn nx run-many --target=lint --projects=akita,akita-ng-entity-service,akita-ng-router-store,akita-ng-devtools,akita-ng-forms-manager,akita-schematics,akita-ng-effects
+
+  test:
+    name: Test applications & libraries
+    runs-on: ubuntu-latest
+    needs: [dependencies]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Restore dependencies from cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Run tests
+        run: yarn nx run-many --target=test --all

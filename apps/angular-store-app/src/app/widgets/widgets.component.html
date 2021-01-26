@@ -1,18 +1,16 @@
 <div class="padding flex flex-column">
   <div class="flex align-center">
-    <h4 style="margin-right: 20px;">Page name: {{ dashoboardName$ | async }}</h4>
-    <input (keydown.enter)="updateName(pageName)" [value]="dashoboardName$ | async" #pageName style="width: 250px;margin-right: 20px;">
-    <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0;" (click)="updateName(pageName)">Update
-      Name
+    <h4 style="margin-right: 20px">Page name: {{ dashoboardName$ | async }}</h4>
+    <input (keydown.enter)="updateName(pageName)" [value]="dashoboardName$ | async" #pageName style="width: 250px; margin-right: 20px" />
+    <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0" (click)="updateName(pageName)">
+      Update Name
       <i class="material-icons right">save</i>
     </button>
   </div>
   <div>
     <h6>The dirty check plugin is only listening to widgets changes and therefore isn't effecting the page name</h6>
   </div>
-  <div>
-    Active: {{activeWidgets$ | async | json}}
-  </div>
+  <div>Active: {{ activeWidgets$ | async | json }}</div>
   <div class="all-widgets-dirty-check flex flex-column flex-1 align-center">
     <table class="striped centered padding">
       <thead>
@@ -28,9 +26,9 @@
 
       <tbody>
         <tr *ngFor="let widget of widgets$ | async">
-          <td>{{widget.id}}</td>
-          <td style="width: 200px;">
-            <input (keydown.enter)="updateWidget(widget.id, name.value)" [value]="widget.name" #name style="margin-right: 20px;">
+          <td>{{ widget.id }}</td>
+          <td style="width: 200px">
+            <input (keydown.enter)="updateWidget(widget.id, name.value)" [value]="widget.name" #name style="margin-right: 20px" />
           </td>
           <td>
             <a class="btn-floating">
@@ -38,7 +36,7 @@
             </a>
           </td>
           <td>
-            <a class="btn-floating" [class.disabled]="!(widgetsSpecific.isDirty(widget.id) | async)">
+            <a class="btn-floating" [class.disabled]="(widgetsSpecific.isDirty(widget.id) | async) === false">
               <i class="material-icons" (click)="revert(widget.id)">undo</i>
             </a>
           </td>
@@ -52,18 +50,23 @@
       </tbody>
     </table>
     <div class="flex sb">
-      <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0;" (click)="remove()">Clear list
+      <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0" (click)="remove()">
+        Clear list
         <i class="material-icons right">clear</i>
       </button>
-      <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0;" (click)="add()">Add widget
+      <button class="btn waves-effect waves-light" style="margin: 20px 10px 0 0" (click)="add()">
+        Add widget
         <i class="material-icons right">add_circle</i>
       </button>
-      <button class="btn waves-effect waves-light tooltipped" style="margin: 20px 10px 0 0;" [class.disabled]="!(collection.isDirty$ | async)"
-        (click)="revertStore()">Reset Store Entities
+      <button
+        class="btn waves-effect waves-light tooltipped"
+        style="margin: 20px 10px 0 0"
+        [class.disabled]="(collection.isDirty$ | async) === false"
+        (click)="revertStore()"
+      >
+        Reset Store Entities
         <i class="material-icons right">undo</i>
       </button>
     </div>
-
   </div>
-
 </div>

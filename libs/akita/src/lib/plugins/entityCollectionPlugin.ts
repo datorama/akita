@@ -1,14 +1,18 @@
 import { Observable } from 'rxjs';
-import { EntityState, OrArray, getIDType } from '../types';
-import { QueryEntity } from '../queryEntity';
-import { isUndefined } from '../isUndefined';
 import { coerceArray } from '../coerceArray';
-import { toBoolean } from '../toBoolean';
 import { isFunction } from '../isFunction';
+import { isUndefined } from '../isUndefined';
+import { QueryEntity } from '../queryEntity';
+import { toBoolean } from '../toBoolean';
+import { EntityState, getIDType, OrArray } from '../types';
 
 export type RebaseAction<P = any> = (plugin: P) => any;
 
-export type RebaseActions<P = any> = { beforeRemove?: RebaseAction; beforeAdd?: RebaseAction; afterAdd?: RebaseAction };
+export interface RebaseActions<P = any> {
+  beforeRemove?: RebaseAction;
+  beforeAdd?: RebaseAction;
+  afterAdd?: RebaseAction;
+}
 
 /**
  * Each plugin that wants to add support for entities should extend this interface.
@@ -16,7 +20,7 @@ export type RebaseActions<P = any> = { beforeRemove?: RebaseAction; beforeAdd?: 
 export abstract class EntityCollectionPlugin<State extends EntityState, P> {
   protected entities = new Map<getIDType<State>, P>();
 
-  protected constructor(protected query: QueryEntity<State>, private entityIds: OrArray<getIDType<State>>) {}
+  protected constructor(protected query: QueryEntity<State>, private readonly entityIds: OrArray<getIDType<State>>) {}
 
   /**
    * Get the entity plugin instance.
@@ -35,7 +39,7 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
   /**
    * Remove the entity plugin instance.
    */
-  protected removeEntity(id: getIDType<State>) {
+  protected removeEntity(id: getIDType<State>): boolean {
     this.destroy(id);
     return this.entities.delete(id);
   }
@@ -43,7 +47,7 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
   /**
    * Set the entity plugin instance.
    */
-  protected createEntity(id: getIDType<State>, plugin: P) {
+  protected createEntity(id: getIDType<State>, plugin: P): Map<getIDType<State>, P> {
     return this.entities.set(id, plugin);
   }
 
@@ -68,7 +72,7 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
    *
    * this.query.select(state => state.ids).pipe(skip(1)).subscribe(ids => this.activate(ids));
    */
-  protected rebase(ids: getIDType<State>[], actions: RebaseActions<P> = {}) {
+  protected rebase(ids: getIDType<State>[], actions: RebaseActions<P> = {}): void {
     /**
      *
      * If the user passes `entityIds` & we have new ids check if we need to add/remove instances.
@@ -76,55 +80,45 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
      * This phase will be called only upon update.
      */
     if (toBoolean(ids)) {
-      /**
-       * Which means all
-       */
-      if (isUndefined(this.entityIds)) {
-        for (let i = 0, len = ids.length; i < len; i++) {
-          const entityId = ids[i];
-          if (this.hasEntity(entityId) === false) {
-            isFunction(actions.beforeAdd) && actions.beforeAdd(entityId);
-            const plugin = this.instantiatePlugin(entityId);
-            this.entities.set(entityId, plugin);
-            isFunction(actions.afterAdd) && actions.afterAdd(plugin);
-          }
-        }
+      const _ids = isUndefined(this.entityIds)
+        ? /**
+           * Which means all
+           */
+          ids
+        : /**
+           * Which means the user passes specific ids
+           */
+          coerceArray(this.entityIds);
 
-        this.entities.forEach((plugin, entityId) => {
-          if (ids.indexOf(entityId) === -1) {
-            isFunction(actions.beforeRemove) && actions.beforeRemove(plugin);
-            this.removeEntity(entityId);
+      _ids
+        .filter((entityId) => this.hasEntity(entityId) === false)
+        .forEach((entityId) => {
+          if (isFunction(actions.beforeAdd)) {
+            actions.beforeAdd(entityId);
+          }
+
+          const plugin = this.instantiatePlugin(entityId);
+          this.entities.set(entityId, plugin);
+
+          if (isFunction(actions.afterAdd)) {
+            actions.afterAdd(plugin);
           }
         });
-      } else {
-        /**
-         * Which means the user passes specific ids
-         */
-        const _ids = coerceArray(this.entityIds);
-        for (let i = 0, len = _ids.length; i < len; i++) {
-          const entityId = _ids[i];
-          /** The Entity in current ids and doesn't exist, add it. */
-          if (ids.indexOf(entityId) > -1 && this.hasEntity(entityId) === false) {
-            isFunction(actions.beforeAdd) && actions.beforeAdd(entityId);
-            const plugin = this.instantiatePlugin(entityId);
-            this.entities.set(entityId, plugin);
-            isFunction(actions.afterAdd) && actions.afterAdd(plugin);
-          } else {
-            this.entities.forEach((plugin, entityId) => {
-              /** The Entity not in current ids and exists, remove it. */
-              if (ids.indexOf(entityId) === -1 && this.hasEntity(entityId) === true) {
-                isFunction(actions.beforeRemove) && actions.beforeRemove(plugin);
-                this.removeEntity(entityId);
-              }
-            });
+
+      this.entities.forEach((plugin, entityId) => {
+        /** The Entity not in current ids and exists, remove it. */
+        if (!ids.includes(entityId)) {
+          if (isFunction(actions.beforeRemove)) {
+            actions.beforeRemove(plugin);
           }
+          this.removeEntity(entityId);
         }
-      }
+      });
     } else {
       /**
        * Otherwise, start with the provided ids or all.
        */
-      this.getIds().forEach(id => {
+      this.getIds().forEach((id) => {
         if (!this.hasEntity(id)) this.createEntity(id, this.instantiatePlugin(id));
       });
     }
@@ -134,13 +128,13 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
    * Listen for add/remove entities.
    */
   protected selectIds(): Observable<any> {
-    return this.query.select(state => state.ids);
+    return this.query.select((state) => state.ids);
   }
 
   /**
    * Base method for activation, you can override it if you need to.
    */
-  protected activate(ids?: any[]) {
+  protected activate(ids?: any[]): void {
     this.rebase(ids);
   }
 
@@ -160,7 +154,7 @@ export abstract class EntityCollectionPlugin<State extends EntityState, P> {
   /**
    * Loop over each id and invoke the plugin method.
    */
-  protected forEachId(ids: OrArray<getIDType<State>>, cb: (entity: P) => any) {
+  protected forEachId(ids: OrArray<getIDType<State>>, cb: (entity: P) => any): void {
     const _ids = this.resolvedIds(ids);
 
     for (let i = 0, len = _ids.length; i < len; i++) {

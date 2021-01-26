@@ -1,10 +1,11 @@
-import { Store } from '../lib/store';
 import { Query } from '../lib/query';
+import { Store } from '../lib/store';
 import { StoreConfig } from '../lib/storeConfig';
 
 class User {
-  firstName: string = '';
-  lastName: string = '';
+  firstName = '';
+
+  lastName = '';
 
   constructor(params: Partial<User>) {
     Object.assign(this, params);
@@ -16,7 +17,7 @@ class User {
 }
 
 @StoreConfig({
-  name: 'user'
+  name: 'user',
 })
 class UserStore extends Store<User> {
   constructor() {
@@ -37,7 +38,7 @@ const query = new UserQuery();
 describe('With Class', () => {
   it('should select a slice from the state', () => {
     const spy = jest.fn();
-    query.select(state => state.firstName).subscribe(spy);
+    query.select((state) => state.firstName).subscribe(spy);
     expect(spy).toHaveBeenCalledWith('Netanel');
   });
 
@@ -53,7 +54,7 @@ describe('With Class', () => {
 
   it('should work with string', () => {
     let result;
-    query.select('firstName').subscribe(name => {
+    query.select('firstName').subscribe((name) => {
       result = name;
     });
     expect(result).toBe('Netanel');

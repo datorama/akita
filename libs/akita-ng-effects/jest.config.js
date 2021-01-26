@@ -7,5 +7,5 @@ module.exports = {
     'jest-preset-angular/build/AngularSnapshotSerializer.js',
     'jest-preset-angular/build/HTMLCommentSerializer.js',
   ],
-  setupFilesAfterEnv: ["<rootDir>/src/test-setup.ts"]
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
 };

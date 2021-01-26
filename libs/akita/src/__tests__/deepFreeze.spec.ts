@@ -1,10 +1,11 @@
+import { deepFreeze } from '../lib/deepFreeze';
 import { Store } from '../lib/store';
 import { StoreConfig } from '../lib/storeConfig';
-import { deepFreeze } from '../lib/deepFreeze';
 
 class SpecialObject {
-  specialString: string = 'special';
-  specialNumber: number = 2;
+  specialString = 'special';
+
+  specialNumber = 2;
 
   constructor(params: Partial<ComplexState>) {
     Object.assign(this, params);
@@ -12,8 +13,10 @@ class SpecialObject {
 }
 
 class ComplexState {
-  propertyString: string = '';
-  propertyNumber: number = 1;
+  propertyString = '';
+
+  propertyNumber = 1;
+
   specialObject: SpecialObject = new SpecialObject({});
 
   constructor(params: Partial<ComplexState>) {
@@ -22,7 +25,7 @@ class ComplexState {
 }
 
 @StoreConfig({
-  name: 'complexState'
+  name: 'complexState',
 })
 class ComplexStore extends Store<ComplexState> {
   constructor() {
@@ -54,7 +57,7 @@ function deepFreezeCustom(o: ComplexState) {
 
 @StoreConfig({
   name: 'complexState2',
-  deepFreezeFn: deepFreezeCustom
+  deepFreezeFn: deepFreezeCustom,
 })
 class ComplexStoreCustom extends Store<ComplexState> {
   constructor() {

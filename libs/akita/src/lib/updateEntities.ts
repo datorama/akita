@@ -1,8 +1,7 @@
-import { Subject } from 'rxjs';
-import { EntityState, ID, PreUpdateEntity, UpdateStateCallback } from './types';
-import { isFunction } from './isFunction';
 import { hasEntity } from './hasEntity';
+import { isFunction } from './isFunction';
 import { isPlainObject } from './isPlainObject';
+import { EntityState, ID, PreUpdateEntity, UpdateStateCallback } from './types';
 
 export type UpdateEntitiesParams<State, Entity> = {
   state: State;
@@ -14,16 +13,18 @@ export type UpdateEntitiesParams<State, Entity> = {
   onEntityIdChanges: (oldId: any, newId: any) => void;
 };
 
-// @internal
+/** @internal */
 export function updateEntities<S extends EntityState<E>, E>({ state, ids, idKey, newStateOrFn, preUpdateEntity, producerFn, onEntityIdChanges }: UpdateEntitiesParams<S, E>) {
   const updatedEntities = {};
 
   let isUpdatingIdKey = false;
   let idToUpdate: ID;
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const id of ids) {
     // if the entity doesn't exist don't do anything
     if (hasEntity(state.entities, id) === false) {
+      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -35,7 +36,7 @@ export function updateEntities<S extends EntityState<E>, E>({ state, ids, idKey,
       newState = newStateOrFn;
     }
 
-    const isIdChanged = newState.hasOwnProperty(idKey) && newState[idKey] !== oldEntity[idKey];
+    const isIdChanged = Object.prototype.hasOwnProperty.call(newState, idKey) && newState[idKey] !== oldEntity[idKey];
     let newEntity: E;
     idToUpdate = id;
 
@@ -62,10 +63,11 @@ export function updateEntities<S extends EntityState<E>, E>({ state, ids, idKey,
        * class we check if the new state is a class of it's own.
        * If so, use it. Otherwise, use the old state class
        */
+      // eslint-disable-next-line no-lonely-if
       if (isPlainObject(newState)) {
         newEntity = new (oldEntity as any).constructor(merged);
       } else {
-        newEntity = new (newState as any).constructor(merged);
+        newEntity = new newState.constructor(merged);
       }
     }
 
@@ -77,6 +79,8 @@ export function updateEntities<S extends EntityState<E>, E>({ state, ids, idKey,
 
   if (isUpdatingIdKey) {
     const [id] = ids;
+    // TODO figure out was is going on here and fix the linting error
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [id]: deletedEntity, ...rest } = state.entities;
     stateEntities = rest;
     updatedIds = state.ids.map((current) => (current === id ? idToUpdate : current));

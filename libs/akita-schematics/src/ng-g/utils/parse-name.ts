@@ -8,6 +8,7 @@ export interface Location {
 export function parseName(options: any): Location {
   const { name, path } = options;
   const nameWithoutPath = basename(name as Path);
+  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
   const namePath = dirname((path + '/' + name) as Path);
   const normalizedPath = normalizePath(nameWithoutPath, namePath, options);
 
@@ -25,6 +26,7 @@ function normalizePath(name: string, namePath: Path, options: any): Path {
     return normalize(basePath);
   }
 
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   const dirPath = `${basePath}/${dirName}`;
   const fullPath = flat ? dirPath : `${dirPath}/${name}`;
 

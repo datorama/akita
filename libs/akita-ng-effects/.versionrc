@@ -1,0 +1,5 @@
+{
+  "path": ".",
+  "tag-prefix": "akita-ng-effects-v",
+  "releaseCommitMessageFormat": "chore(release): akita-ng-effects@{{currentTag}}"
+}

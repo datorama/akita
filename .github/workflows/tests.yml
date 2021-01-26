@@ -11,10 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - uses: actions/cache@v1
+      - uses: actions/setup-node@v2
+      - uses: actions/cache@v2
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: node_modules # !WARN does not work if running multiple node versions, instead use https://github.com/actions/cache/blob/master/examples.md#node---yarn
@@ -32,11 +30,9 @@ jobs:
     needs: [dependencies]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
+      - uses: actions/setup-node@v2
       - name: Restore dependencies from cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}

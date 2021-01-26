@@ -5,14 +5,13 @@ import { Actions } from './actions';
 import { Action, Effect } from './types';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ModuleManager implements OnDestroy {
   effectInstanceSources: Type<any>[] = [];
-  destroyEffects$                    = new Subject();
+  destroyEffects$ = new Subject();
 
-  constructor(private actions$: Actions) {
-  }
+  constructor(private readonly actions$: Actions) {}
 
   addEffectInstance(effectInstance: Type<any>) {
     this.effectInstanceSources.push(effectInstance);
@@ -20,13 +19,10 @@ export class ModuleManager implements OnDestroy {
   }
 
   subscribeToEffects(effectInstance: Type<any>) {
-    for (let key in effectInstance) {
+    for (const key in effectInstance) {
       const property: Effect = effectInstance[key];
       if (property.hasOwnProperty('isEffect') && property.isEffect) {
-        property.pipe(
-          takeUntil(this.destroyEffects$)
-        )
-          .subscribe(actionOrSkip => this.dispatchAction(property, actionOrSkip));
+        property.pipe(takeUntil(this.destroyEffects$)).subscribe((actionOrSkip) => this.dispatchAction(property, actionOrSkip));
       }
     }
   }

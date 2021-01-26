@@ -1,8 +1,8 @@
-import { pairwise, distinctUntilChanged } from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AkitaPlugin, Queries } from '../plugin';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { distinctUntilChanged, pairwise } from 'rxjs/operators';
 import { logAction } from '../../actions';
 import { isFunction } from '../../isFunction';
+import { AkitaPlugin, Queries } from '../plugin';
 
 export interface StateHistoryParams {
   maxAge?: number;
@@ -10,11 +10,11 @@ export interface StateHistoryParams {
   comparator?: (prevState, currentState) => boolean;
 }
 
-export type History<State> = {
+export interface History<State> {
   past: State[];
   present: State | null;
   future: State[];
-};
+}
 
 export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
   /** Allow skipping an update from outside */
@@ -23,25 +23,29 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
   private history = {
     past: [],
     present: null,
-    future: []
+    future: [],
   };
 
   /** Skip the update when redo/undo */
   private skipUpdate = false;
-  private subscription;
+
+  private subscription: Subscription;
 
   /* Subjects for supporting observable hasPast$ and hasFuture$ */
   private hasPastSubject: BehaviorSubject<boolean>;
+
   private _hasPast$: Observable<boolean>;
+
   private hasFutureSubject: BehaviorSubject<boolean>;
+
   private _hasFuture$: Observable<boolean>;
 
-  constructor(protected query: Queries<State>, private params: StateHistoryParams = {}, private _entityId?: any) {
+  constructor(protected query: Queries<State>, private readonly params: StateHistoryParams = {}, private readonly _entityId?: any) {
     super(query, {
-      resetFn: () => this.clear()
+      resetFn: () => this.clear(),
     });
-    params.maxAge = !!params.maxAge ? params.maxAge : 10;
-    params.comparator = params.comparator || (() => true);
+    this.params.maxAge = params.maxAge ? params.maxAge : 10;
+    this.params.comparator = params.comparator || ((): boolean => true);
 
     this.activate();
   }
@@ -62,25 +66,25 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
     return this._hasFuture$;
   }
 
-  get hasPast() {
+  get hasPast(): boolean {
     return this.history.past.length > 0;
   }
 
-  get hasFuture() {
+  get hasFuture(): boolean {
     return this.history.future.length > 0;
   }
 
-  private get property() {
+  private get property(): string | undefined {
     return this.params.watchProperty;
   }
 
-  /* Updates the hasPast$ hasFuture$ observables*/
-  private updateHasHistory() {
+  /* Updates the hasPast$ hasFuture$ observables */
+  private updateHasHistory(): void {
     this.hasFutureSubject.next(this.hasFuture);
     this.hasPastSubject.next(this.hasPast);
   }
 
-  activate() {
+  activate(): void {
     this.hasPastSubject = new BehaviorSubject(false);
     this._hasPast$ = this.hasPastSubject.asObservable().pipe(distinctUntilChanged());
     this.hasFutureSubject = new BehaviorSubject(false);
@@ -111,7 +115,7 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
       });
   }
 
-  undo() {
+  undo(): void {
     if (this.history.past.length > 0) {
       const { past, present } = this.history;
       const previous = past[past.length - 1];
@@ -122,7 +126,7 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
     }
   }
 
-  redo() {
+  redo(): void {
     if (this.history.future.length > 0) {
       const { past, present } = this.history;
       const next = this.history.future[0];
@@ -134,7 +138,7 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
     }
   }
 
-  jumpToPast(index: number) {
+  jumpToPast(index: number): void {
     if (index < 0 || index >= this.history.past.length) return;
 
     const { past, future, present } = this.history;
@@ -159,7 +163,7 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
     this.update();
   }
 
-  jumpToFuture(index: number) {
+  jumpToFuture(index: number): void {
     if (index < 0 || index >= this.history.future.length) return;
 
     const { past, future, present } = this.history;
@@ -190,9 +194,9 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
    * jump n steps in the past or forward
    *
    */
-  jump(n: number) {
-    if (n > 0) return this.jumpToFuture(n - 1);
-    if (n < 0) return this.jumpToPast(this.history.past.length + n);
+  jump(n: number): void {
+    if (n > 0) this.jumpToFuture(n - 1);
+    if (n < 0) this.jumpToPast(this.history.past.length + n);
   }
 
   /**
@@ -210,29 +214,29 @@ export class StateHistoryPlugin<State = any> extends AkitaPlugin<State> {
    *  };
    * });
    */
-  clear(customUpdateFn?: (history: History<State>) => History<State>) {
+  clear(customUpdateFn?: (history: History<State>) => History<State>): void {
     this.history = isFunction(customUpdateFn)
       ? customUpdateFn(this.history)
       : {
           past: [],
           present: null,
-          future: []
+          future: [],
         };
     this.updateHasHistory();
   }
 
-  destroy(clearHistory = false) {
+  destroy(clearHistory = false): void {
     if (clearHistory) {
       this.clear();
     }
     this.subscription.unsubscribe();
   }
 
-  ignoreNext() {
+  ignoreNext(): void {
     this.skip = true;
   }
 
-  private update(action = 'Undo') {
+  private update(action = 'Undo'): void {
     this.skipUpdate = true;
     logAction(`@StateHistory - ${action}`);
     this.updateStore(this.history.present, this._entityId, this.property);

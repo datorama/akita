@@ -7,4 +7,5 @@ import { Diff } from './types';
  *
  * query.selectEntity(2).pipe(filterNil)
  */
-export const filterNil = <T>(source: Observable<T | undefined | null>) => source.pipe(filter((value): value is Diff<T, null | undefined> => value !== null && typeof value !== 'undefined'));
+export const filterNil = <T>(source: Observable<T | undefined | null>): Observable<Diff<T, null>> =>
+  source.pipe(filter((value): value is Diff<T, null | undefined> => value !== null && typeof value !== 'undefined'));

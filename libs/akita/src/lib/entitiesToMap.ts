@@ -1,9 +1,10 @@
-import { EntityState } from './types';
-import { isNil } from './isNil';
 import { coerceArray } from './coerceArray';
+import { isNil } from './isNil';
+import { EntityState, HashMap } from './types';
 
-// @internal
-export function entitiesToMap<S extends EntityState<E>, E>(state: S, options) {
+/** @internal */
+// eslint-disable-next-line complexity
+export function entitiesToMap<S extends EntityState<E>, E>(state: S, options): HashMap<E> {
   const map = {};
   const { filterBy, limitTo } = options;
   const { ids, entities } = state;
@@ -15,11 +16,11 @@ export function entitiesToMap<S extends EntityState<E>, E>(state: S, options) {
 
   if (filterBy && hasLimit) {
     let count = 0;
-    for (let i = 0, length = ids.length; i < length; i++) {
+    for (let i = 0, { length } = ids; i < length; i++) {
       if (count === limitTo) break;
       const id = ids[i];
       const entity = entities[id];
-      const allPass = coerceArray(filterBy).every(fn => fn(entity, i));
+      const allPass = coerceArray(filterBy).every((fn) => fn(entity, i));
       if (allPass) {
         map[id] = entity;
         count++;
@@ -34,10 +35,11 @@ export function entitiesToMap<S extends EntityState<E>, E>(state: S, options) {
 
       if (!filterBy) {
         map[id] = entity;
+        // eslint-disable-next-line no-continue
         continue;
       }
 
-      const allPass = coerceArray(filterBy).every(fn => fn(entity, i));
+      const allPass = coerceArray(filterBy).every((fn) => fn(entity, i));
       if (allPass) {
         map[id] = entity;
       }

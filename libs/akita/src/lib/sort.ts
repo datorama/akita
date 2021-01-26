@@ -1,12 +1,12 @@
 export enum Order {
   ASC = 'asc',
-  DESC = 'desc'
+  DESC = 'desc',
 }
 
-// @internal
+/** @internal */
 export function compareValues(key, order: Order = Order.ASC) {
-  return function(a, b) {
-    if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) {
+  return (a, b): number => {
+    if (!Object.prototype.hasOwnProperty.call(a, key) || !Object.prototype.hasOwnProperty.call(b, key)) {
       return 0;
     }
 
@@ -19,6 +19,6 @@ export function compareValues(key, order: Order = Order.ASC) {
     } else if (varA < varB) {
       comparison = -1;
     }
-    return order == Order.DESC ? comparison * -1 : comparison;
+    return order === Order.DESC ? comparison * -1 : comparison;
   };
 }

@@ -6,14 +6,10 @@ interface Article {
   title: string;
 }
 
-interface ArticlesState extends EntityState<Article> {}
+type ArticlesState = EntityState<Article>;
 
 @StoreConfig({ name: 'articles' })
-class ArticlesStore extends EntityStore<ArticlesState, Article> {
-  constructor() {
-    super();
-  }
-}
+class ArticlesStore extends EntityStore<ArticlesState, Article> {}
 
 class ArticlesQuery extends QueryEntity<ArticlesState, Article> {}
 

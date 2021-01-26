@@ -1,5 +1,7 @@
-// @internal
-export function sortByOptions(options, config) {
-  options.sortBy = options.sortBy || (config && config.sortBy);
-  options.sortByOrder = options.sortByOrder || (config && config.sortByOrder);
+/** @internal */
+export function sortByOptions(options, config): any {
+  const optionsCopy = { ...options };
+  optionsCopy.sortBy = options.sortBy || (config && config.sortBy);
+  optionsCopy.sortByOrder = options.sortByOrder || (config && config.sortByOrder);
+  return optionsCopy;
 }

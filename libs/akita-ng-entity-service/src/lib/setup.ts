@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { EntityState, EntityStore, ID, StoreConfig } from '@datorama/akita';
 import { NgEntityServiceConfig } from './ng-entity-service.config';
 import { NgEntityService } from './ng-entity.service';
@@ -8,16 +9,12 @@ export interface TestEntity {
   bar: number;
 }
 
-export interface TestEntityState extends EntityState<TestEntity> {}
+export type TestEntityState = EntityState<TestEntity>;
 
 export const storeName = 'test-store';
 
 @StoreConfig({ name: storeName })
-export class TestStore extends EntityStore<TestEntityState, TestEntity> {
-  constructor() {
-    super();
-  }
-}
+export class TestStore extends EntityStore<TestEntityState, TestEntity> {}
 
 @NgEntityServiceConfig()
 export class TestService extends NgEntityService<TestEntityState> {
@@ -27,9 +24,7 @@ export class TestService extends NgEntityService<TestEntityState> {
 }
 
 @NgEntityServiceConfig()
-export class TestServiceWithInlineConfig extends NgEntityService<
-  TestEntityState
-> {
+export class TestServiceWithInlineConfig extends NgEntityService<TestEntityState> {
   public constructor(readonly store: TestStore) {
     super(store, { baseUrl: 'inline-url', resourceName: 'inline-res' });
   }
@@ -37,11 +32,9 @@ export class TestServiceWithInlineConfig extends NgEntityService<
 
 @NgEntityServiceConfig({
   baseUrl: 'decorator-url',
-  resourceName: 'decorator-res'
+  resourceName: 'decorator-res',
 })
-export class TestServiceWithDecoratorConfig extends NgEntityService<
-  TestEntityState
-> {
+export class TestServiceWithDecoratorConfig extends NgEntityService<TestEntityState> {
   public constructor(readonly store: TestStore) {
     super(store);
   }
@@ -49,20 +42,16 @@ export class TestServiceWithDecoratorConfig extends NgEntityService<
 
 @NgEntityServiceConfig({
   baseUrl: 'decorator-url',
-  resourceName: 'decorator-res'
+  resourceName: 'decorator-res',
 })
-export class TestServiceWithDecoratorAndInlineConfig extends NgEntityService<
-  TestEntityState
-> {
+export class TestServiceWithDecoratorAndInlineConfig extends NgEntityService<TestEntityState> {
   public constructor(readonly store: TestStore) {
     super(store, { baseUrl: 'inline-url', resourceName: 'inline-res' });
   }
 }
 
 @NgEntityServiceConfig({ baseUrl: 'decorator-url' })
-export class TestServiceWithMixedConfig extends NgEntityService<
-  TestEntityState
-> {
+export class TestServiceWithMixedConfig extends NgEntityService<TestEntityState> {
   public constructor(readonly store: TestStore) {
     super(store, { resourceName: 'inline-res' });
   }

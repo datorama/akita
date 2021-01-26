@@ -1,7 +1,7 @@
 export interface Schema {
-  name: string,
-  path?: string,
-  skipTests?: boolean,
+  name: string;
+  path?: string;
+  skipTests?: boolean;
   module?: string;
   flat?: boolean;
   root?: boolean;

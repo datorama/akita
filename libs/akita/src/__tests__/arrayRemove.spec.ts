@@ -1,8 +1,8 @@
-import { ID, EntityState } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
-import { EntityStore } from '../lib/entityStore';
-import { arrayRemove } from '../lib/arrayRemove';
 import { arrayAdd } from '..';
+import { arrayRemove } from '../lib/arrayRemove';
+import { EntityStore } from '../lib/entityStore';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
 interface Comment {
   id: ID;

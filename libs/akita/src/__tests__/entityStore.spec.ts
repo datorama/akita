@@ -143,7 +143,7 @@ describe('EntitiesStore', () => {
       store.add(new Todo({ id: 1 }));
       store.add(new Todo({ id: 2 }));
       store.add(new Todo({ id: 3 }));
-      store.update([1, 2], (entity) => ({ title: 'update' + entity.id }));
+      store.update([1, 2], (entity) => ({ title: `update${entity.id}` }));
       expect(store._value().entities[1].title).toEqual('update1');
       expect(store._value().entities[2].title).toEqual('update2');
       expect(store._value().entities[3].title).toEqual('3');
@@ -454,7 +454,7 @@ describe('EntitiesStore', () => {
 });
 
 describe('Custom ID', () => {
-  let store2 = new TodosStoreCustomID();
+  const store2 = new TodosStoreCustomID();
 
   it('should set with custom id', () => {
     store2.set([{ todoId: 1, title: '1' }]);
@@ -470,7 +470,7 @@ describe('Custom ID', () => {
 });
 
 describe('Store set options', () => {
-  let store = new TodosStore();
+  const store = new TodosStore();
 
   it('should support passing active id', () => {
     store.set([new Todo({ id: 1 })], { activeId: 1 });

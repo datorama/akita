@@ -2,9 +2,9 @@ import { EMPTY, Observable, of } from 'rxjs';
 import { Store } from './store';
 
 /**
- * 
+ *
  * Helper function for checking if we have data in cache
- * 
+ *
  * export class ProductsService {
  *   constructor(private productsStore: ProductsStore) {}
 

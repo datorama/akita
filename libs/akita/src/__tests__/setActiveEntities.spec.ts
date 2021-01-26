@@ -1,5 +1,5 @@
-import { EntityState, EntityStore, ID, MultiActiveState, QueryEntity, StoreConfig } from '../index';
 import { take } from 'rxjs/operators';
+import { EntityState, EntityStore, ID, MultiActiveState, QueryEntity, StoreConfig } from '../index';
 
 type Todo = {
   id: ID;
@@ -10,7 +10,7 @@ type Todo = {
 interface TodosState extends EntityState<Todo>, MultiActiveState {}
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
 class TodosStore extends EntityStore<TodosState, Todo> {}
 
@@ -24,7 +24,7 @@ describe('Multi active', () => {
     Array.from({ length: 10 }, (_, i) => {
       return {
         id: i,
-        title: `Todo ${i}`
+        title: `Todo ${i}`,
       };
     })
   );
@@ -78,10 +78,7 @@ describe('Multi active', () => {
 
     it('should select active ids', () => {
       const spy = jest.fn();
-      query
-        .selectActiveId()
-        .pipe(take(2))
-        .subscribe(spy);
+      query.selectActiveId().pipe(take(2)).subscribe(spy);
       expect(spy).toHaveBeenCalledWith([1, 2, 3, 6]);
       store.addActive([55]);
       expect(spy).toHaveBeenCalledWith([1, 2, 3, 6, 55]);
@@ -109,14 +106,15 @@ describe('Multi active', () => {
 
     it('should toggle', () => {
       store.toggleActive(9);
-      expect(query.getActiveId().indexOf(9) > -1).toBe(true);
+      expect(query.getActiveId().includes(9)).toBe(true);
       store.toggleActive(9);
-      expect(query.getActiveId().indexOf(9) > -1).toBe(false);
+      expect(query.getActiveId().includes(9)).toBe(false);
     });
 
     it('should update actives', () => {
       // [1, 2, 3]
       store.updateActive({ completed: true });
+      // eslint-disable-next-line no-restricted-syntax
       for (const active of query.getActive()) {
         expect(active.completed).toBe(true);
       }
@@ -126,22 +124,19 @@ describe('Multi active', () => {
       const spy = jest.fn();
       store.setActive([1, 2]);
 
-      query
-        .selectActive()
-        .pipe(take(2))
-        .subscribe(spy);
+      query.selectActive().pipe(take(2)).subscribe(spy);
       jest.runAllTimers();
       expect(spy).toHaveBeenCalledWith([
         {
           id: 1,
           title: 'Todo 1',
-          completed: true
+          completed: true,
         },
         {
           id: 2,
           title: 'Todo 2',
-          completed: true
-        }
+          completed: true,
+        },
       ]);
 
       store.setActive([3, 4]);
@@ -150,20 +145,20 @@ describe('Multi active', () => {
         {
           id: 3,
           title: 'Todo 3',
-          completed: true
+          completed: true,
         },
         {
           id: 4,
-          title: 'Todo 4'
-        }
+          title: 'Todo 4',
+        },
       ]);
     });
 
     it('should update actives callback', () => {
       // [3. 4]
-      store.updateActive(todo => {
+      store.updateActive((todo) => {
         return {
-          completed: !todo.completed
+          completed: !todo.completed,
         };
       });
       expect((store as any).entities[3].completed).toBe(false);

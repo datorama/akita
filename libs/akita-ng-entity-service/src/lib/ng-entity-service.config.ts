@@ -1,7 +1,6 @@
 import { InjectionToken } from '@angular/core';
-import { NgEntityServiceParams } from './types';
-import { HttpMethod } from './ng-entity-service-notifier';
 import { isObject } from '@datorama/akita';
+import { HttpMethod, NgEntityServiceParams } from './types';
 
 export interface NgEntityServiceGlobalConfig {
   baseUrl?: string;
@@ -22,15 +21,16 @@ export const defaultConfig: NgEntityServiceGlobalConfig = {
     POST: HttpMethod.POST,
     PATCH: HttpMethod.PATCH,
     PUT: HttpMethod.PUT,
-    DELETE: HttpMethod.DELETE
-  }
+    DELETE: HttpMethod.DELETE,
+  },
 };
 
-export function mergeDeep(target, ...sources) {
+export function mergeDeep(target, ...sources): any {
   if (!sources.length) return target;
   const source = sources.shift();
 
   if (isObject(target) && isObject(source)) {
+    // eslint-disable-next-line no-restricted-syntax
     for (const key in source) {
       if (isObject(source[key])) {
         if (!target[key]) Object.assign(target, { [key]: {} });
@@ -45,13 +45,15 @@ export function mergeDeep(target, ...sources) {
 }
 
 export function NgEntityServiceConfig(config: NgEntityServiceParams = {}) {
-  return function(constructor) {
+  return (constructor): void => {
     if (config.baseUrl) {
-      constructor['baseUrl'] = config.baseUrl;
+      // eslint-disable-next-line no-param-reassign
+      constructor.baseUrl = config.baseUrl;
     }
 
     if (config.resourceName) {
-      constructor['resourceName'] = config.resourceName;
+      // eslint-disable-next-line no-param-reassign
+      constructor.resourceName = config.resourceName;
     }
   };
 }

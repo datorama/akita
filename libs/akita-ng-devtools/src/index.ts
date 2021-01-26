@@ -1,1 +1,1 @@
-export * from './lib/ng-devtools.module';
+export * from './lib/index';

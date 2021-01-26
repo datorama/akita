@@ -14,27 +14,27 @@ describe('Multi Selectors', () => {
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({
       name: '',
-      email: ''
+      email: '',
     });
     store.update({
       name: 'a',
-      email: 'b'
+      email: 'b',
     });
 
     expect(spy).toHaveBeenCalledWith({
       name: 'a',
-      email: 'b'
+      email: 'b',
     });
     expect(spy).toHaveBeenCalledTimes(2);
     store.update({ age: 33 });
     expect(spy).toHaveBeenCalledTimes(2);
     store.update({
-      name: 'vv'
+      name: 'vv',
     });
     expect(spy).toHaveBeenCalledTimes(3);
     expect(spy).toHaveBeenCalledWith({
       name: 'vv',
-      email: 'b'
+      email: 'b',
     });
     store.update({ age: 335 });
     expect(spy).toHaveBeenCalledTimes(3);
@@ -44,31 +44,31 @@ describe('Multi Selectors', () => {
 
   it('should work with callbacks', () => {
     const spy = jest.fn();
-    const arr = query.select([state => state.age, state => state.name]);
+    const arr = query.select([(state) => state.age, (state) => state.name]);
 
     arr.subscribe(spy);
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith([21, '']);
     store.update({
       age: 22,
-      name: 'new'
+      name: 'new',
     });
 
     expect(spy).toHaveBeenCalledTimes(2);
     expect(spy).toHaveBeenCalledWith([22, 'new']);
 
     store.update({
-      email: 'new'
+      email: 'new',
     });
     expect(spy).toHaveBeenCalledTimes(2);
     store.update({
-      age: 33
+      age: 33,
     });
     expect(spy).toHaveBeenCalledTimes(3);
     expect(spy).toHaveBeenCalledWith([33, 'new']);
 
     store.update({
-      name: 'bla'
+      name: 'bla',
     });
 
     expect(spy).toHaveBeenCalledTimes(4);

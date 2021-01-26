@@ -1,0 +1,13 @@
+{
+  "extends": "../../.eslintrc",
+  "rules": {},
+  "ignorePatterns": ["!**/*", "**/*/files/**/*"],
+  "overrides": [
+    {
+      "files": ["*.spec.ts"],
+      "rules": {
+        "@typescript-eslint/unbound-method": "off" // false positive for stuff like expect(obj.someFn).not.toHaveBeenCalled();
+      }
+    }
+  ]
+}

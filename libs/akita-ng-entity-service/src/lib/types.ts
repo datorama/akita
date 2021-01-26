@@ -1,11 +1,27 @@
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { AddEntitiesOptions } from '@datorama/akita';
-import { HttpMethod } from './ng-entity-service-notifier';
 
 export interface NgEntityServiceParams {
   baseUrl?: string;
   resourceName?: string;
 }
+
+export enum HttpMethod {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
+}
+
+export type ActionType = 'success' | 'error';
+
+export type EntityServiceAction = {
+  storeName: string;
+  type: ActionType;
+  payload: any;
+  method: HttpMethod;
+} & Msg;
 
 type _HttpHeaders =
   | HttpHeaders

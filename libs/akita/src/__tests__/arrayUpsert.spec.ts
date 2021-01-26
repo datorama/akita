@@ -1,7 +1,7 @@
-import { EntityState, ID } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
-import { EntityStore } from '../lib/entityStore';
 import { arrayUpsert } from '../lib/arrayUpsert';
+import { EntityStore } from '../lib/entityStore';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
 interface Comment {
   id: ID;
@@ -34,14 +34,14 @@ describe('arrayUpsert', () => {
       title: 'title',
       comments: [
         { id: 1, text: 'comment' },
-        { id: 2, text: 'comment2' }
-      ]
+        { id: 2, text: 'comment2' },
+      ],
     };
 
     store.add(article);
 
-    store.update(1, entity => ({
-      comments: arrayUpsert(entity.comments, 1, { text: 'updated' })
+    store.update(1, (entity) => ({
+      comments: arrayUpsert(entity.comments, 1, { text: 'updated' }),
     }));
     expect(store._value().entities[1].comments[0].text).toBe('updated');
     expect(store._value().entities[1].comments.length).toBe(2);
@@ -54,14 +54,14 @@ describe('arrayUpsert', () => {
       title: 'title',
       comments: [
         { id: 1, text: 'comment' },
-        { id: 2, text: 'comment2' }
-      ]
+        { id: 2, text: 'comment2' },
+      ],
     };
 
     store.add(article);
 
-    store.update(1, entity => ({
-      comments: arrayUpsert(entity.comments, 3, { text: 'NEW' })
+    store.update(1, (entity) => ({
+      comments: arrayUpsert(entity.comments, 3, { text: 'NEW' }),
     }));
     expect(store._value().entities[1].comments[2].text).toBe('NEW');
     expect(store._value().entities[1].comments[2].id).toBe(3);
@@ -70,12 +70,12 @@ describe('arrayUpsert', () => {
   });
 
   it('should work with non-objects', () => {
-    store.update(state => ({
-      names: arrayUpsert(state.names, 'b', 'updatedName')
+    store.update((state) => ({
+      names: arrayUpsert(state.names, 'b', 'updatedName'),
     }));
     expect(store._value().names).toEqual(['a', 'updatedName', 'c']);
-    store.update(state => ({
-      names: arrayUpsert(state.names, 'd', 'NEW')
+    store.update((state) => ({
+      names: arrayUpsert(state.names, 'd', 'NEW'),
     }));
     expect(store._value().names).toEqual(['a', 'updatedName', 'c', 'NEW']);
   });

@@ -11,9 +11,11 @@
     "target": "es2015",
     "module": "esnext",
     "typeRoots": ["node_modules/@types"],
-    "lib": ["es2018", "dom"],
+    "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false, // TODO turn on
     "baseUrl": ".",
     "paths": {
       "@datorama/akita": ["libs/akita/src/index.ts"],

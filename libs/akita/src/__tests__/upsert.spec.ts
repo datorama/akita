@@ -1,6 +1,6 @@
-import { ID, EntityState } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
 import { EntityStore } from '../lib/entityStore';
+import { StoreConfig } from '../lib/storeConfig';
+import { EntityState, ID } from '../lib/types';
 
 interface Article {
   id?: ID;
@@ -12,7 +12,7 @@ interface Article {
   };
 }
 
-interface ArticlesState extends EntityState<Article> {}
+type ArticlesState = EntityState<Article>;
 
 @StoreConfig({ name: 'articles' })
 class ArticlesStore extends EntityStore<ArticlesState, Article> {}
@@ -29,7 +29,7 @@ describe('upsert', () => {
   });
 
   it('should add if not exist - one (empty object passed to update callback)', () => {
-    let testNewState: Article | {};
+    let testNewState: Article | Record<string, unknown>;
     store.upsert(
       1,
       (newState) => {

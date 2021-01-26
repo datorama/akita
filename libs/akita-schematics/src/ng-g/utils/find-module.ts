@@ -5,7 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Path, join, normalize, relative, strings, basename, extname, dirname } from '@angular-devkit/core';
+import { basename, dirname, extname, join, normalize, Path, relative, strings } from '@angular-devkit/core';
 import { DirEntry, Tree } from '@angular-devkit/schematics';
 
 export interface ModuleOptions {
@@ -74,16 +74,18 @@ export function findModule(host: Tree, generateDir: string): Path {
  * Build a relative path from one file path to another file path.
  */
 export function buildRelativePath(from: string, to: string): string {
-  const { path: fromPath, filename: fromFileName, directory: fromDirectory } = parsePath(from);
-  const { path: toPath, filename: toFileName, directory: toDirectory } = parsePath(to);
+  const { directory: fromDirectory } = parsePath(from);
+  const { filename: toFileName, directory: toDirectory } = parsePath(to);
   const relativePath = relative(fromDirectory, toDirectory);
   const fixedRelativePath = relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
 
-  return !toFileName || toFileName === 'index.ts' ? fixedRelativePath : `${fixedRelativePath.endsWith('/') ? fixedRelativePath : fixedRelativePath + '/'}${convertToTypeScriptFileName(toFileName)}`;
+  return !toFileName || toFileName === 'index.ts'
+    ? fixedRelativePath
+    : `${fixedRelativePath.endsWith('/') ? fixedRelativePath : fixedRelativePath + '/'}${convertToTypeScriptFileName(toFileName)}`;
 }
 
 function parsePath(path: string) {
-  const pathNormalized = normalize(path) as Path;
+  const pathNormalized = normalize(path);
   const filename = extname(pathNormalized) ? basename(pathNormalized) : '';
   const directory = filename ? dirname(pathNormalized) : pathNormalized;
   return {

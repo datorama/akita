@@ -1,14 +1,16 @@
-import { AkitaPlugin, EntityCollectionPlugin, ID, IDS } from '..';
 import { skip } from 'rxjs/operators';
+import { AkitaPlugin, EntityCollectionPlugin, getIDType, IDS } from '..';
 import { createWidget, WidgetsQuery, WidgetsStore } from './setup';
 
 class TestPlugin extends AkitaPlugin {
-  constructor(protected query, params = {}, _entityId: ID) {
+  constructor(protected query) {
     super(query);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   action() {}
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   destroy() {}
 }
 
@@ -22,19 +24,19 @@ class TestPluginEntity<E, P extends TestPlugin = TestPlugin> extends EntityColle
     this.activate();
     this.selectIds()
       .pipe(skip(1))
-      .subscribe(ids => this.activate(ids));
+      .subscribe((ids) => this.activate(ids));
   }
 
   action(ids?: IDS) {
-    this.forEachId(ids, p => p.action());
+    this.forEachId(ids, (p) => p.action());
   }
 
-  destroy(ids?: IDS) {
-    this.forEachId(ids, p => p.destroy());
+  destroy(id?: getIDType<E>) {
+    this.forEachId(id, (p) => p.destroy());
   }
 
-  protected instantiatePlugin(id: ID): P {
-    return new TestPlugin(this.query, {}, id) as P;
+  protected instantiatePlugin(): P {
+    return new TestPlugin(this.query) as P;
   }
 }
 

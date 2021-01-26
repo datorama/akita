@@ -1,9 +1,8 @@
 import { EntityStore } from './entityStore';
 import { AkitaError } from './errors';
 import { isNil } from './isNil';
-import { Store } from './store';
+import { Store, __stores__ } from './store';
 import { configKey } from './storeConfig';
-import { __stores__ } from './stores';
 import { Constructor } from './types';
 
 export enum StoreAction {
@@ -50,7 +49,7 @@ export function getStoreByName<TStore extends Store<S>, S = TStore extends Store
   const store = __stores__[storeName] as TStore;
 
   if (isNil(store)) {
-    throw new AkitaError(`${store} doesn't exist`);
+    throw new AkitaError(`${storeName} doesn't exist`);
   }
 
   return store;
@@ -69,7 +68,7 @@ export function getEntityStore<TEntityStore extends EntityStore<S>, S = TEntityS
  * @param storeName The {@link EntityStore} name of the instance to be returned.
  */
 export function getEntityStoreByName<TEntityStore extends EntityStore<S>, S = TEntityStore extends EntityStore<infer T> ? T : never>(storeName: string): TEntityStore {
-  return getStoreByName<TEntityStore, S>(storeName) as TEntityStore;
+  return getStoreByName<TEntityStore, S>(storeName);
 }
 
 /**
@@ -90,6 +89,7 @@ export function runStoreAction<TStore extends Store<S>, S = TStore extends Store
 export function runStoreAction<TStore extends Store<S>, S = TStore extends Store<infer T> ? T : any>(
   storeClassOrName: Constructor<TStore> | string,
   action: StoreAction,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   operation: (operator: TStore[keyof TStore] & Function) => void
 ) {
   const store = typeof storeClassOrName === 'string' ? getStoreByName<TStore, S>(storeClassOrName) : getStore<TStore, S>(storeClassOrName);
@@ -191,6 +191,7 @@ export function runEntityStoreAction<TEntityStore extends EntityStore<S>, S = TE
 export function runEntityStoreAction<TEntityStore extends EntityStore<S>, S = TEntityStore extends EntityStore<infer T> ? T : any>(
   storeClassOrName: Constructor<TEntityStore> | string,
   action: EntityStoreAction,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   operation: (operator: TEntityStore[keyof TEntityStore] & Function) => void
 ) {
   const store = typeof storeClassOrName === 'string' ? getEntityStoreByName<TEntityStore, S>(storeClassOrName) : getEntityStore<TEntityStore, S>(storeClassOrName);

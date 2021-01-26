@@ -35,7 +35,7 @@ describe('removeEntities', () => {
   it('should remove by predicate', () => {
     const store = new BooksStore();
     store.add([...createMockEntities(), ...createMockEntities(10, 12)]); // [1, 2, 11, 12]
-    store.remove(entity => entity.price === 11);
+    store.remove((entity) => entity.price === 11);
     expect(store._value().entities[11]).not.toBeDefined();
     expect(store._value().entities[1]).toBeDefined();
     expect(store._value().entities[2]).toBeDefined();
@@ -62,7 +62,7 @@ describe('removeEntities', () => {
     store.remove();
   });
 
-  it('should reset the actives when removed', () => {
+  it('should reset the actives when removed (2)', () => {
     const store = new BooksStore();
     store.add([...createMockEntities(), ...createMockEntities(10, 12)]); // [1, 2, 11, 12]
     store.setActive([12, 2] as any);

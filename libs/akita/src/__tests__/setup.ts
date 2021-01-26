@@ -1,13 +1,17 @@
 import { EntityStore } from '../lib/entityStore';
-import { ActiveState, EntityState, ID } from '../lib/types';
-import { StoreConfig } from '../lib/storeConfig';
 import { QueryEntity } from '../lib/queryEntity';
+import { StoreConfig } from '../lib/storeConfig';
+import { ActiveState, EntityState, ID } from '../lib/types';
 
 export class Todo {
   id: ID;
+
   title?: string;
+
   completed? = false;
+
   price?: number;
+
   constructor(params: Todo) {
     Object.assign(this, params);
     if (!params.title) {
@@ -40,7 +44,12 @@ export type TodoCustomID = {
   completed?;
 };
 
-export interface StateTwo extends EntityState<TodoCustomID> {}
+export type StateTwo = EntityState<TodoCustomID>;
+
+export const initialStateTwo: StateTwo = {
+  active: null,
+  metadata: { name: 'metadata' },
+};
 
 @StoreConfig({
   name: 'todos',
@@ -52,19 +61,11 @@ export class TodosStoreCustomID extends EntityStore<StateTwo, TodoCustomID> {
   }
 }
 
-export function createTodos(len) {
-  const arr = [];
-  const factory = ct();
-  for (var i = 0; i < len; i++) {
-    arr.push(factory());
-  }
-  return arr;
-}
-
 export function ct() {
   let count = 0;
   return function () {
     const id = count++;
+
     return {
       id,
       title: `Todo ${id}`,
@@ -73,7 +74,16 @@ export function ct() {
   };
 }
 
-export function cot() {
+export function createTodos(len: number) {
+  const arr = [];
+  const factory = ct();
+  for (let i = 0; i < len; i++) {
+    arr.push(factory());
+  }
+  return arr;
+}
+
+export function cot(): Todo {
   return {
     id: 1,
     title: `Todo ${1}`,
@@ -88,11 +98,7 @@ export type Widget = {
 };
 
 @StoreConfig({ name: 'widgets' })
-export class WidgetsStore extends EntityStore<any, Widget> {
-  constructor(initState?) {
-    super(initState);
-  }
-}
+export class WidgetsStore extends EntityStore<any, Widget> {}
 
 export class WidgetsQuery extends QueryEntity<any, Widget> {
   constructor(protected store) {
@@ -100,9 +106,10 @@ export class WidgetsQuery extends QueryEntity<any, Widget> {
   }
 }
 
-export function createWidget(id) {
+export function createWidget(id): Widget {
   return {
     id,
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     title: `Widget ${id}`,
     complete: false,
   } as Widget;

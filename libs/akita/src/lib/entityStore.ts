@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { logAction, setAction } from './actions';
 import { addEntities, AddEntitiesOptions } from './addEntities';
 import { coerceArray } from './coerceArray';
@@ -25,6 +25,7 @@ import {
   EntityUICreateFn,
   getEntityType,
   getIDType,
+  HashMap,
   IDS,
   OrArray,
   StateWithActive,
@@ -53,26 +54,28 @@ import { updateEntities } from './updateEntities';
  */
 export class EntityStore<S extends EntityState = any, EntityType = getEntityType<S>, IDType = getIDType<S>> extends Store<S> {
   ui: EntityUIStore<any, EntityType>;
-  private entityActions = new Subject<EntityAction<IDType>>();
-  private entityIdChanges = new Subject<{ newId: IDType; oldId: IDType; pending: boolean }>();
+
+  private readonly entityActions = new Subject<EntityAction<IDType>>();
+
+  private readonly entityIdChanges = new Subject<{ newId: IDType; oldId: IDType; pending: boolean }>();
 
   constructor(initialState: Partial<S> = {}, protected options: Partial<StoreConfigOptions> = {}) {
     super({ ...getInitialEntitiesState(), ...initialState }, options);
   }
 
-  // @internal
-  get selectEntityAction$() {
+  /** @internal */
+  get selectEntityAction$(): Observable<EntityAction<IDType>> {
     return this.entityActions.asObservable();
   }
 
-  // @internal
+  /** @internal */
   get selectEntityIdChanges$() {
     return this.entityIdChanges.asObservable();
   }
 
-  // @internal
+  /** @internal */
   get idKey() {
-    return (this.config as StoreConfigOptions).idKey || this.options.idKey || DEFAULT_ID_KEY;
+    return this.config.idKey || this.options.idKey || DEFAULT_ID_KEY;
   }
 
   /**
@@ -86,10 +89,10 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * this.store.set({ 1: {}, 2: {}})
    *
    */
-  set(entities: SetEntities<EntityType>, options: { activeId?: IDType | null } = {}) {
+  set(entities: SetEntities<EntityType>, options: { activeId?: IDType | null } = {}): void {
     if (isNil(entities)) return;
 
-    isDev() && setAction('Set Entity');
+    if (isDev()) setAction('Set Entity');
 
     const isNativePreAdd = this.akitaPreAddEntity === EntityStore.prototype.akitaPreAddEntity;
     this.setHasCache(true, { restartTTL: true });
@@ -99,7 +102,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
         state,
         entities,
         idKey: this.idKey,
-        preAddEntity: this.akitaPreAddEntity,
+        preAddEntity: this.akitaPreAddEntity.bind(this),
         isNativePreAdd,
       });
 
@@ -128,21 +131,21 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    *
    * this.store.add(Entity, { loading: false })
    */
-  add(entities: OrArray<EntityType>, options: AddEntitiesOptions = { loading: false }) {
+  add(entities: OrArray<EntityType>, options: AddEntitiesOptions = { loading: false }): void {
     const collection = coerceArray(entities);
 
     if (isEmpty(collection)) return;
 
     const data = addEntities({
       state: this._value(),
-      preAddEntity: this.akitaPreAddEntity,
+      preAddEntity: this.akitaPreAddEntity.bind(this),
       entities: collection,
       idKey: this.idKey,
       options,
     });
 
     if (data) {
-      isDev() && setAction('Add Entity');
+      if (isDev()) setAction('Add Entity');
       data.newState.loading = options.loading;
 
       this._setState(() => data.newState);
@@ -201,7 +204,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
 
     if (isEmpty(ids)) return;
 
-    isDev() && setAction('Update Entity', ids);
+    if (isDev()) setAction('Update Entity', ids);
 
     let entityIdChanged:
       | undefined
@@ -214,6 +217,9 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       updateEntities({
         idKey: this.idKey,
         ids,
+        // TODO .bind(this) causes a type error when compiling:
+        // Type 'Partial<S> | Partial<EntityType> | UpdateStateCallback<EntityType, Partial<EntityType>>' is not assignable to type 'Partial<S> | UpdateStateCallback<S, Partial<S>>'
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         preUpdateEntity: this.akitaPreUpdateEntity,
         state,
         newStateOrFn,
@@ -289,7 +295,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
     // it can be any of the three types
     this.update(updateIds, newState as UpdateStateCallback<EntityType, NewEntityType>);
     this.add(newEntities);
-    isDev() && logAction('Upsert Entity');
+    if (isDev()) logAction('Upsert Entity');
   }
 
   /**
@@ -304,24 +310,29 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * store.upsertMany([ { id: 1 }, { id: 2 }], { baseClass: Todo  });
    *
    */
-  upsertMany(entities: EntityType[], options: { baseClass?: Constructor; loading?: boolean } = {}) {
+  upsertMany(entities: EntityType[], options: { baseClass?: Constructor; loading?: boolean } = {}): void {
     const addedIds = [];
     const updatedIds = [];
     const updatedEntities = {};
 
     // Update the state directly to optimize performance
+    // eslint-disable-next-line no-restricted-syntax
     for (const entity of entities) {
       const withPreCheckHook = this.akitaPreCheckEntity(entity);
       const id = withPreCheckHook[this.idKey];
       if (hasEntity(this.entities, id)) {
         const prev = this._value().entities[id];
         const merged = { ...this._value().entities[id], ...withPreCheckHook };
+        // TODO @deprecate baseClass and add a new BaseClass
+        // eslint-disable-next-line new-cap
         const next = options.baseClass ? new options.baseClass(merged) : merged;
         const withHook = this.akitaPreUpdateEntity(prev, next);
         const nextId = withHook[this.idKey];
         updatedEntities[nextId] = withHook;
         updatedIds.push(nextId);
       } else {
+        // TODO @deprecate baseClass and add a new BaseClass
+        // eslint-disable-next-line new-cap
         const newEntity = options.baseClass ? new options.baseClass(withPreCheckHook) : withPreCheckHook;
         const withHook = this.akitaPreAddEntity(newEntity);
         const nextId = withHook[this.idKey];
@@ -330,7 +341,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       }
     }
 
-    isDev() && logAction('Upsert Many');
+    if (isDev()) logAction('Upsert Many');
 
     this._setState((state) => ({
       ...state,
@@ -342,8 +353,8 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       loading: !!options.loading,
     }));
 
-    updatedIds.length && this.entityActions.next({ type: EntityActions.Update, ids: updatedIds });
-    addedIds.length && this.entityActions.next({ type: EntityActions.Add, ids: addedIds });
+    if (updatedIds.length) this.entityActions.next({ type: EntityActions.Update, ids: updatedIds });
+    if (addedIds.length) this.entityActions.next({ type: EntityActions.Add, ids: addedIds });
     if (addedIds.length && this.hasUIStore()) {
       this.handleUICreation(true);
     }
@@ -359,15 +370,18 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * this.store.replace(5, newEntity)
    * this.store.replace([1,2,3], newEntity)
    */
-  replace(ids: IDS, newState: Partial<EntityType>) {
+  replace(ids: IDS, newState: Partial<EntityType>): void {
     const toArray = coerceArray(ids);
     if (isEmpty(toArray)) return;
-    let replaced = {};
+    const replaced = {};
+    // eslint-disable-next-line no-restricted-syntax
     for (const id of toArray) {
+      // !WARN fixing this is a breaking change as users might rely on this side effect
+      // eslint-disable-next-line no-param-reassign
       newState[this.idKey] = id;
       replaced[id] = newState;
     }
-    isDev() && setAction('Replace Entity', ids);
+    if (isDev()) setAction('Replace Entity', ids);
     this._setState((state) => ({
       ...state,
       entities: {
@@ -386,11 +400,11 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    *
    * this.store.move(fromIndex, toIndex)
    */
-  move(from: number, to: number) {
+  move(from: number, to: number): void {
     const ids = this.ids.slice();
     ids.splice(to < 0 ? ids.length + to : to, 0, ids.splice(from, 1)[0]);
 
-    isDev() && setAction('Move Entity');
+    if (isDev()) setAction('Move Entity');
     this._setState((state) => ({
       ...state,
       // Change the entities reference so that selectAll emit
@@ -412,11 +426,13 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * this.store.remove()
    */
   remove(id?: OrArray<IDType>);
+
   /**
    * this.store.remove(entity => entity.id === 1)
    */
   remove(predicate: (entity: Readonly<EntityType>) => boolean);
-  remove(idsOrFn?: OrArray<IDType> | ((entity: Readonly<EntityType>) => boolean)) {
+
+  remove(idsOrFn?: OrArray<IDType> | ((entity: Readonly<EntityType>) => boolean)): void {
     if (isEmpty(this.ids)) return;
 
     const idPassed = isDefined(idsOrFn);
@@ -432,7 +448,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
 
     if (isEmpty(ids)) return;
 
-    isDev() && setAction('Remove Entity', ids);
+    if (isDev()) setAction('Remove Entity', ids);
     this._setState((state: StateWithActive<S>) => removeEntities({ state, ids }));
 
     if (!idPassed) {
@@ -459,9 +475,9 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    *   }
    * })
    */
-  updateActive(newStateOrCallback: UpdateStateCallback<EntityType> | Partial<EntityType>) {
+  updateActive(newStateOrCallback: UpdateStateCallback<EntityType> | Partial<EntityType>): void {
     const ids = coerceArray(this.active);
-    isDev() && setAction('Update Active', ids);
+    if (isDev()) setAction('Update Active', ids);
     this.update(ids, newStateOrCallback as Partial<EntityType>);
   }
 
@@ -481,7 +497,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       return;
     }
 
-    isDev() && setAction('Set Active', active);
+    if (isDev()) setAction('Set Active', active);
     this._setActive(active);
   }
 
@@ -493,13 +509,13 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * store.addActive(2);
    * store.addActive([3, 4, 5]);
    */
-  addActive<T = OrArray<IDType>>(ids: T) {
+  addActive<T = OrArray<IDType>>(ids: T): void {
     const toArray = coerceArray(ids);
     if (isEmpty(toArray)) return;
     const everyExist = toArray.every((id) => this.active.indexOf(id) > -1);
     if (everyExist) return;
 
-    isDev() && setAction('Add Active', ids);
+    if (isDev()) setAction('Add Active', ids);
     this._setState((state) => {
       /** Protect against case that one of the items in the array exist */
       const uniques = Array.from(new Set([...(state.active as IDType[]), ...toArray]));
@@ -518,13 +534,13 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * store.removeActive(2)
    * store.removeActive([3, 4, 5])
    */
-  removeActive<T = OrArray<IDType>>(ids: T) {
+  removeActive<T = OrArray<IDType>>(ids: T): void {
     const toArray = coerceArray(ids);
     if (isEmpty(toArray)) return;
     const someExist = toArray.some((id) => this.active.indexOf(id) > -1);
     if (!someExist) return;
 
-    isDev() && setAction('Remove Active', ids);
+    if (isDev()) setAction('Remove Active', ids);
     this._setState((state) => {
       return {
         ...state,
@@ -542,14 +558,14 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * store.toggle([3, 4, 5])
    */
   @transaction()
-  toggleActive<T = OrArray<IDType>>(ids: T) {
+  toggleActive<T = OrArray<IDType>>(ids: T): void {
     const toArray = coerceArray(ids);
     const filterExists = (remove) => (id) => this.active.includes(id) === remove;
     const remove = toArray.filter(filterExists(true));
     const add = toArray.filter(filterExists(false));
     this.removeActive(remove);
     this.addActive(add);
-    isDev() && logAction('Toggle Active');
+    if (isDev()) logAction('Toggle Active');
   }
 
   /**
@@ -575,14 +591,15 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    *
    * }
    */
-  createUIStore(initialState = {}, storeConfig: Partial<StoreConfigOptions> = {}) {
+  createUIStore(initialState = {}, storeConfig: Partial<StoreConfigOptions> = {}): EntityUIStore<any, EntityType> {
     const defaults: Partial<StoreConfigOptions> = { name: `UI/${this.storeName}`, idKey: this.idKey };
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     this.ui = new EntityUIStore(initialState, { ...defaults, ...storeConfig });
     return this.ui;
   }
 
-  // @internal
-  destroy() {
+  /** @internal */
+  destroy(): void {
     super.destroy();
     if (this.ui instanceof EntityStore) {
       this.ui.destroy();
@@ -590,30 +607,33 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
     this.entityActions.complete();
   }
 
-  // @internal
+  /** @internal */
+  // eslint-disable-next-line class-methods-use-this
   akitaPreUpdateEntity(_: Readonly<EntityType>, nextEntity: any): EntityType {
     return nextEntity as EntityType;
   }
 
-  // @internal
+  /** @internal */
+  // eslint-disable-next-line class-methods-use-this
   akitaPreAddEntity(newEntity: any): EntityType {
     return newEntity as EntityType;
   }
 
-  // @internal
+  /** @internal */
+  // eslint-disable-next-line class-methods-use-this
   akitaPreCheckEntity(newEntity: Readonly<EntityType>): EntityType {
     return newEntity;
   }
 
-  private get ids() {
+  private get ids(): any[] {
     return this._value().ids;
   }
 
-  private get entities() {
+  private get entities(): HashMap<any> {
     return this._value().entities;
   }
 
-  private get active() {
+  private get active(): S['active'] {
     return this._value().active;
   }
 
@@ -626,11 +646,11 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
     });
   }
 
-  private handleUICreation(add = false) {
-    const ids = this.ids;
+  private handleUICreation(add = false): void {
+    const { ids } = this;
     const isFunc = isFunction(this.ui._akitaCreateEntityFn);
     let uiEntities;
-    const createFn = (id) => {
+    const createFn = (id): any => {
       const current = this.entities[id];
       const ui = isFunc ? this.ui._akitaCreateEntityFn(current) : this.ui._akitaCreateEntityFn;
       return {
@@ -645,25 +665,31 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       uiEntities = ids.map(createFn);
     }
 
-    add ? this.ui.add(uiEntities) : this.ui.set(uiEntities);
+    if (add) {
+      this.ui.add(uiEntities);
+    } else {
+      this.ui.set(uiEntities);
+    }
   }
 
-  private hasInitialUIState() {
+  private hasInitialUIState(): boolean {
     return this.hasUIStore() && isUndefined(this.ui._akitaCreateEntityFn) === false;
   }
 
-  private handleUIRemove(ids: IDType[]) {
+  private handleUIRemove(ids: IDType[]): void {
     if (this.hasUIStore()) {
       this.ui.remove(ids);
     }
   }
 
-  private hasUIStore() {
+  private hasUIStore(): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     return this.ui instanceof EntityUIStore;
   }
 }
 
-// @internal
+/** @internal */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class EntityUIStore<UIState, DEPRECATED = any> extends EntityStore<UIState> {
   _akitaCreateEntityFn: EntityUICreateFn;
 
@@ -685,7 +711,7 @@ export class EntityUIStore<UIState, DEPRECATED = any> extends EntityStore<UIStat
    * }
    *
    */
-  setInitialEntityState<EntityUI = any, Entity = any>(createFn: EntityUICreateFn<EntityUI, Entity>) {
+  setInitialEntityState<EntityUI = any, Entity = any>(createFn: EntityUICreateFn<EntityUI, Entity>): void {
     this._akitaCreateEntityFn = createFn;
   }
 }

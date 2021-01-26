@@ -5,34 +5,17 @@ import { StoreConfig } from '../lib/storeConfig';
 import { tick } from './setup';
 
 @StoreConfig({
-  name: 'todos'
+  name: 'todos',
 })
-class TodosStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class TodosStore extends EntityStore<any, any> {}
 
 @StoreConfig({
-  name: 'products'
+  name: 'products',
 })
-class ProductsStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
+class ProductsStore extends EntityStore<any, any> {}
 
 @StoreConfig({
-  name: 'cart'
-})
-class CartStore extends EntityStore<any, any> {
-  constructor() {
-    super();
-  }
-}
-
-@StoreConfig({
-  name: 'auth'
+  name: 'auth',
 })
 class AuthStore extends Store<any> {
   constructor() {
@@ -49,7 +32,6 @@ describe('persistState', () => {
 
   const todos = new TodosStore();
   const products = new ProductsStore();
-  const cart = new CartStore();
   const auth = new AuthStore();
 
   it('should initial the value if in storage', () => {
@@ -57,11 +39,11 @@ describe('persistState', () => {
       ui: { filter: 'SHOW_ALL' },
       entities: {
         '0.5666823893391795': { id: 0.5666823893391795, title: 'ds', completed: true },
-        '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false }
+        '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false },
       },
       ids: [0.5666823893391795, 0.16954788680591548],
       loading: false,
-      error: null
+      error: null,
     });
   });
 
@@ -77,12 +59,12 @@ describe('persistState', () => {
         ui: { filter: 'SHOW_ALL' },
         entities: {
           '0.5666823893391795': { id: 0.5666823893391795, title: 'ds', completed: true },
-          '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false }
+          '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false },
         },
         ids: [0.5666823893391795, 0.16954788680591548],
         loading: false,
-        error: null
-      }
+        error: null,
+      },
     };
 
     expect(localStorage.setItem).toHaveBeenCalledTimes(1);
@@ -96,7 +78,7 @@ describe('persistState', () => {
         id: 1,
         firstName: 'Netanel',
         lastName: 'Basal',
-        token: 'token'
+        token: 'token',
       };
     });
     await tick();
@@ -108,12 +90,12 @@ describe('persistState', () => {
         ui: { filter: 'SHOW_ALL' },
         entities: {
           '0.5666823893391795': { id: 0.5666823893391795, title: 'ds', completed: true },
-          '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false }
+          '0.16954788680591548': { id: 0.16954788680591548, title: 'ds', completed: false },
         },
         ids: [0.5666823893391795, 0.16954788680591548],
         loading: false,
-        error: null
-      }
+        error: null,
+      },
     };
 
     expect(localStorage.setItem).toHaveBeenCalledTimes(1);
@@ -126,7 +108,7 @@ describe('persistState', () => {
     const expected = {
       cart: { entities: {}, ids: [], loading: false, error: null },
       products: { entities: { '1': { id: 1 } }, ids: [1], loading: false, error: null },
-      auth: { id: 1, firstName: 'Netanel', lastName: 'Basal', token: 'token' }
+      auth: { id: 1, firstName: 'Netanel', lastName: 'Basal', token: 'token' },
     };
     expect(JSON.parse(localStorage.getItem('AkitaStores'))).toMatchObject(expected);
   });

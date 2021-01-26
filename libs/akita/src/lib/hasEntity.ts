@@ -1,6 +1,6 @@
-import { EntityState, ID } from './index';
+import { EntityState, ID } from './types';
 
-// @internal
-export function hasEntity<E>(entities: EntityState<E>, id: ID) {
-  return entities.hasOwnProperty(id);
+/** @internal */
+export function hasEntity<E>(entities: EntityState<E>, id: ID): boolean {
+  return Object.prototype.hasOwnProperty.call(entities, id);
 }
