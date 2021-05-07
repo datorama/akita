@@ -82,7 +82,7 @@
     "faker": "^4.1.0",
     "helpful-decorators": "^2.0.6",
     "lodash": "4.17.20",
-    "rxjs": "6.5.5",
+    "rxjs": "6.6.7",
     "schematics-utilities": "2.0.2",
     "ts-action": "^11.0.0",
     "ts-action-operators": "^9.1.1",
