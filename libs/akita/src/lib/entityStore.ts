@@ -261,14 +261,14 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
     ids: OrArray<IDType>,
     newState: UpsertStateCallback<EntityType, NewEntityType> | NewEntityType,
     onCreate: CreateStateCallback<EntityType, NewEntityType, IDType>,
-    options?: { baseClass?: Constructor }
+    options?: { baseClass?: Constructor; prepend?: boolean }
   ): void;
   @transaction()
   upsert<NewEntityType extends Partial<EntityType>>(
     ids: OrArray<IDType>,
     newState: UpsertStateCallback<EntityType, NewEntityType> | NewEntityType,
     onCreate?: CreateStateCallback<EntityType, NewEntityType, IDType> | { baseClass?: Constructor },
-    options: { baseClass?: Constructor } = {}
+    options: { baseClass?: Constructor; prepend?: boolean } = {}
   ) {
     const toArray = coerceArray(ids);
     const predicate = (isUpdate) => (id) => hasEntity(this.entities, id) === isUpdate;
@@ -286,9 +286,40 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
       return withId;
     });
 
+    if (options.prepend && updateIds.length) {
+      let arr = this.ids;
+      arr = arr.filter((elem) => elem !== ids);
+      arr = [ids, ...arr];
+      this._setState((state) => ({
+        ...state,
+        ids: arr,
+      }));
+
+      // let entityIdChanged:
+      //   | undefined
+      //   | {
+      //   newId: IDType;
+      //   oldId: IDType;
+      // };
+      // this._setState((state) =>
+      //   updateEntities({
+      //     idKey: this.idKey,
+      //     // this.ids,
+      //     preUpdateEntity: this.akitaPreUpdateEntity,
+      //     state,
+      //     producerFn: this._producerFn,
+      //     onEntityIdChanges: (oldId: IDType, newId: IDType) => {
+      //       entityIdChanged = { oldId, newId };
+      //       this.entityIdChanges.next({ ...entityIdChanged, pending: true });
+      //     },
+      //   })
+      // );
+    } else {
+      this.update(updateIds, newState as UpdateStateCallback<EntityType, NewEntityType>);
+      this.add(newEntities, { prepend: options.prepend });
+    }
+
     // it can be any of the three types
-    this.update(updateIds, newState as UpdateStateCallback<EntityType, NewEntityType>);
-    this.add(newEntities);
     isDev() && logAction('Upsert Entity');
   }
 
@@ -304,7 +335,7 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
    * store.upsertMany([ { id: 1 }, { id: 2 }], { baseClass: Todo  });
    *
    */
-  upsertMany(entities: EntityType[], options: { baseClass?: Constructor; loading?: boolean } = {}) {
+  upsertMany(entities: EntityType[], options: { baseClass?: Constructor; loading?: boolean; prepend?: boolean } = {}) {
     const addedIds = [];
     const updatedIds = [];
     const updatedEntities = {};
@@ -334,11 +365,16 @@ export class EntityStore<S extends EntityState = any, EntityType = getEntityType
 
     this._setState((state) => ({
       ...state,
-      ids: addedIds.length ? [...state.ids, ...addedIds] : state.ids,
-      entities: {
-        ...state.entities,
-        ...updatedEntities,
-      },
+      ids: options.prepend ? (addedIds.length ? [...addedIds, ...state.ids] : state.ids) : addedIds.length ? [...state.ids, ...addedIds] : state.ids,
+      entities: options.prepend
+        ? {
+            ...updatedEntities,
+            ...state.entities,
+          }
+        : {
+            ...state.entities,
+            ...updatedEntities,
+          },
       loading: !!options.loading,
     }));
 
