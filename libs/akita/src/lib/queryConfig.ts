@@ -1,13 +1,22 @@
 import { Order } from './sort';
 
-export type SortBy<E, S = any> = ((a: E, b: E, state?: S) => number) | keyof E;
+type SortByFunction<E, S = any> = (a: E, b: E, state?: S) => number;
+type SortByKey<E> = keyof E;
+export type SortBy<E, S = any> = SortByFunction<E, S> | SortByKey<E>;
 
-export interface SortByOptions<E> {
-  sortBy?: SortBy<E>;
+interface SortByFunctionOptions<E> {
+  sortBy?: SortByFunction<E>;
+  sortByOrder?: undefined;
+}
+
+interface SortByKeyOptions<E> {
+  sortBy?: SortByKey<E>;
   sortByOrder?: Order;
 }
 
-export interface QueryConfigOptions<E = any> extends SortByOptions<E> {}
+export type SortByOptions<E> = SortByFunctionOptions<E> | SortByKeyOptions<E>;
+
+export type QueryConfigOptions<E = any> = SortByOptions<E>;
 
 export const queryConfigKey = 'akitaQueryConfig';
 

@@ -27,7 +27,7 @@ export interface MultiActiveState<T = ID> {
   active: T[];
 }
 
-export interface SelectOptions<E> extends SortByOptions<E> {
+export type SelectOptions<E> = SortByOptions<E> & {
   asObject?: boolean;
   filterBy?: ((entity: E, index?: number) => boolean) | ((entity: E, index?: number) => boolean)[] | undefined;
   limitTo?: number;
