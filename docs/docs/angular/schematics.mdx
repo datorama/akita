@@ -94,6 +94,21 @@ Alias:
 ng g @datorama/akita:ahes todos
 ```
 
+### Generate a Local Component State
+```bash
+ng g @datorama/akita:component-state todos
+
+Alias:
+ng g @datorama/akita:cs todos
+
+Options:
+  --type="providers" / "factory" / "service" // default: providers decides what type of local component state to generate
+```
+
+:::tip
+Type *providers*: refers to adding the state to the component providers array individually, *factory*: a single factory to the component providers array and *service*: as a standard service. See the [Local Component State docs](local-state) for more info.
+:::
+
 ### Generate Tests
 Add the `--spec` option. For example:
 
