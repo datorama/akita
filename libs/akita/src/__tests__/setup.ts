@@ -109,3 +109,6 @@ export function createWidget(id) {
 }
 
 export const tick = () => new Promise(process.nextTick);
+
+@StoreConfig({ name: 'disabledTrackingConfig', disableTracking: true })
+export class DisabledTrackingConfigStore extends EntityStore<State> {}

@@ -3,7 +3,7 @@ import { capitalize } from '../lib/capitalize';
 import { akitaDevtools } from '../lib/devtools';
 import { Store } from '../lib/store';
 import { applyTransaction } from '../lib/transaction';
-import { TodosStore } from './setup';
+import { TodosStore, DisabledTrackingConfigStore } from './setup';
 
 function buildActionTypeString(store: Store<any>, type: string) {
   return `[${capitalize(store.storeName)}] - ${type}`;
@@ -199,6 +199,17 @@ describe('DevTools', () => {
 
     expect(connectMock.send.mock.calls.length).toBe(1);
     expect(connectMock.send.mock.calls[0][0]['type']).toEqual(expect.stringContaining(buildActionTypeString(store, `Custom Action`)));
+  });
+
+  it('should log only if disableTracking is not true', function () {
+    connectMock.send.mockReset();
+    const noTrackingStoreConfig = new DisabledTrackingConfigStore();
+    const noTrackingStoreOptions = new Store({}, { disableTracking: true });
+
+    noTrackingStoreConfig.setLoading();
+    noTrackingStoreOptions.setLoading();
+
+    expect(connectMock.send.mock.calls.length).toBe(0);
   });
 
   afterEach(() => {

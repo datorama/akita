@@ -57,7 +57,7 @@ export function akitaDevtools(ngZoneOrOptions?: NgZoneLike | Partial<DevtoolsOpt
   let appState = {};
 
   const isAllowed = (storeName) => {
-    if (!storesWhitelist.length) {
+    if (!storesWhitelist.length && !__stores__[storeName].disabledTracking) {
       return true;
     }
 

@@ -7,6 +7,7 @@ export type StoreConfigOptions = {
   deepFreezeFn?: (o: any) => any;
   idKey?: string;
   producerFn?: AkitaConfig['producerFn'];
+  disableTracking?: boolean;
 };
 
 export type UpdatableStoreConfigOptions = {
@@ -16,7 +17,7 @@ export type UpdatableStoreConfigOptions = {
 export const configKey = 'akitaConfig';
 
 export function StoreConfig(metadata: StoreConfigOptions) {
-  return function(constructor: Function) {
+  return function (constructor: Function) {
     constructor[configKey] = { idKey: 'id' };
 
     for (let i = 0, keys = Object.keys(metadata); i < keys.length; i++) {

@@ -175,6 +175,11 @@ export class Store<S = any> {
   }
 
   // @internal
+  get disabledTracking() {
+    return isDefined(this.config.disableTracking) ? this.config.disableTracking : this.options.disableTracking;
+  }
+
+  // @internal
   _setState(newState: ((state: Readonly<S>) => S) | S, _dispatchAction = true) {
     if (isFunction(newState)) {
       const _newState = newState(this._value());
