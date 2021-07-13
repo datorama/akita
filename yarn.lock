@@ -16463,10 +16463,10 @@ trim-off-newlines@^1.0.0:
   resolved "https://registry.yarnpkg.com/trim-off-newlines/-/trim-off-newlines-1.0.1.tgz#9f9ba9d9efa8764c387698bcbfeb2c848f11adb3"
   integrity sha1-n5up2e+odkw4dpi8v+sshI8RrbM=
 
-ts-action-operators@^9.1.1:
-  version "9.1.1"
-  resolved "https://registry.yarnpkg.com/ts-action-operators/-/ts-action-operators-9.1.1.tgz#70093688de343426bbac077572d5bc269e48b37b"
-  integrity sha512-i2yysOan0I5d+ic5PmqyNkYhgEomB9NLyCbwpuwPNVRFMeS8+mAMsgEtlX+wRuimpY5B3+FFFswJiKhVbx5Sow==
+ts-action-operators@^9.1.2:
+  version "9.1.2"
+  resolved "https://registry.yarnpkg.com/ts-action-operators/-/ts-action-operators-9.1.2.tgz#269c6898d6cc87c7fc28a3780c3f700d42e2fe1c"
+  integrity sha512-DZ+sJvBdOluThwCBcCdDnz0NiVeQxEwveL+cmkJGLO1ps+x/D0xwSefmOIa1S7p2nXFHH52ZPr/8VEvxZHaNgg==
 
 ts-action@^11.0.0:
   version "11.0.0"

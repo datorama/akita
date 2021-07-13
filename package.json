@@ -80,7 +80,7 @@
     "rxjs": "6.6.7",
     "schematics-utilities": "2.0.3",
     "ts-action": "^11.0.0",
-    "ts-action-operators": "^9.1.1",
+    "ts-action-operators": "^9.1.2",
     "tslib": "2.0.3",
     "zone.js": "^0.10.3"
   },
