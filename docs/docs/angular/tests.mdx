@@ -23,7 +23,7 @@ export class TodosStore extends EntityStore<TodosState> {
 
 ```ts title="todos.query.ts"
 export class TodosQuery extends QueryEntity<TodosState> {
-  selectFilter$ = this.select(state => state.ui.filter);
+  selectFilter$ = this.select((state) => state.ui.filter);
 
   constructor(protected store: TodosStore) {
     super(store);
@@ -35,25 +35,20 @@ export class TodosQuery extends QueryEntity<TodosState> {
 @Component({
   selector: 'todos-page',
   template: `
-     <div *ngFor="let todo of todos$ | async" class="todo">
-       {{ todo.title }}
-     </div>
+    <div *ngFor="let todo of todos$ | async" class="todo">
+      {{ todo.title }}
+    </div>
 
-     <div class="no-todos" *ngIf="!(todos$ | async).length">
-       No result
-     </div>
+    <div class="no-todos" *ngIf="!(todos$ | async).length">No result</div>
 
-     <div class="filter">{{ selectFilter$ | async }}</div> 
-  `
+    <div class="filter">{{ selectFilter$ | async }}</div>
+  `,
 })
 export class TodosPageComponent implements OnInit {
   todos$: Observable<Todo[]>;
   selectFilter$: Observable<string>;
 
-  constructor(
-    private todosQuery: TodosQuery,
-    private todosService: TodosService
-  ) {}
+  constructor(private todosQuery: TodosQuery, private todosService: TodosService) {}
 
   ngOnInit() {
     this.todos$ = this.todosQuery.selectAll();
@@ -70,7 +65,6 @@ There are two strategies that we can use to test the component:
 We can mock the query and in each spec provide the selector result:
 
 ```ts title="todos-page.component.spec.ts"
-
 describe('TodosPageComponent', () => {
   let component: TodosPageComponent;
   let todosQuery: TodosQuery;
@@ -78,11 +72,8 @@ describe('TodosPageComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      providers: [
-        TodosService,
-        TodosQuery
-      ],
-      declarations: [TodosComponent]
+      providers: [TodosService, TodosQuery],
+      declarations: [TodosComponent],
     }).compileComponents();
   }));
 
@@ -138,10 +129,8 @@ describe('TodosPageComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      providers: [
-       TodosService,
-      ],
-      declarations: [TodosComponent]
+      providers: [TodosService],
+      declarations: [TodosComponent],
     }).compileComponents();
   }));
 
@@ -180,7 +169,8 @@ describe('TodosPageComponent', () => {
 ```
 
 ## Testing the Store/Query
-There is no reason to test the built-in Akita's methods because they have been well tested. The only tests you should add are for custom methods that you might have. 
+
+There is no reason to test the built-in Akita's methods because they have been well tested. The only tests you should add are for custom methods that you might have.
 
 For example:
 
@@ -220,3 +210,7 @@ describe('TodosStore', () => {
 :::info
 The same principles also apply to the `Query`
 :::
+
+## Side effects
+
+See the section effects

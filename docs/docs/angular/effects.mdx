@@ -31,8 +31,348 @@ import { ProductEffects } from './path/to/effects';
 })
 export class FeatureModule {}
 ```
+## The parameter `dispatch`
+This parameter dictates if the effect can dispatch an action. Set `true` if you want the effect to dispatch an action. Set to `false` or omit if the effect should not dispatch any action.
 
-## Setup Actions
+## Simple Example: a counter with logging as side effect
+Let's crete a simple counter, counting up the state and writing some info to console as a side effect.
+### Setup service
+```ts title="counter.service.ts"
+import { Injectable } from '@angular/core';
+import { Actions } from '@datorama/akita-ng-effects';
+import { Observable } from 'rxjs';
+
+import { count1 } from './counter.actions';
+import { CounterQuery } from './counter.query';
+import { CounterState } from './counter.store';
+
+@Injectable({ providedIn: 'root' })
+export class CounterService {
+
+  constructor(
+    private actions$: Actions,
+    private query: CounterQuery,
+  ) {}
+
+  getCountersValues$(): Observable<CounterState> {
+    return this.query.select(
+      (state: CounterState): CounterState => state);
+  }
+
+  count() : void {
+    this.actions$.dispatch(count1({
+      c1: 1, c2: 2, c3: 3
+    }));
+  }
+
+  log(dataToLog: unknown): void {
+    console.log(dataToLog);
+  }
+}
+```
+### Setup Actions
+```ts title="counter.actions.ts"
+import { createAction, props } from '@datorama/akita-ng-effects';
+
+import { Counter } from './counter.store';
+
+export const count1 = createAction(
+  '[Count] count 1',
+  props<Counter>(),
+);
+
+export const count2 = createAction(
+  '[Count] count 2',
+  props<Counter>(),
+);
+
+export const count3 = createAction(
+  '[Count] count 3',
+  props<Counter>(),
+);
+```
+### Setup Query
+```ts title="counter.query.ts"
+import { Injectable } from '@angular/core';
+import { Query } from '@datorama/akita';
+import { CounterStore, CounterState } from './counter.store';
+
+@Injectable({ providedIn: 'root' })
+export class CounterQuery extends Query<CounterState> {
+
+  constructor(protected store: CounterStore) {
+    super(store);
+  }
+}
+```
+### Setup Store
+```ts title="counter.store.ts"
+import { Injectable } from '@angular/core';
+import { Store, StoreConfig } from '@datorama/akita';
+
+
+export interface Counter {
+  c1: number;
+  c2: number;
+  c3: number;
+}
+
+export interface CounterState extends Counter {};
+
+const initState = {
+  c1: 0,
+  c2: 0,
+  c3: 0,
+}
+
+@Injectable({ providedIn: 'root' })
+@StoreConfig({ name: 'counter' })
+export class CounterStore extends Store<CounterState> {
+
+  constructor() {
+    super(initState);
+  }
+}
+```
+### Setup Effects
+```ts title="counter.effect.ts"
+import { Injectable } from '@angular/core';
+import { Actions, createEffect, ofType } from '@datorama/akita-ng-effects';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
+import { count1, count2, count3 } from './counter.actions';
+import { Counter } from './counter.store';
+import { CounterService } from './counter.service';
+import { CounterState, CounterStore } from './counter.store';
+
+@Injectable()
+export class CounterEffects {
+
+  count1$ = createEffect(() =>
+
+    this.actions$.pipe(
+      ofType(count1),
+      switchMap((counterArg: Counter): Observable<Counter> => {
+
+        this.store.update( (state: CounterState): CounterState =>
+          ( { ...state, ...{ c1: state.c1 + counterArg.c1 } }));
+
+        this.counterService.log('Side effect of count1');
+
+        return of(counterArg);
+      }),
+      map( (counter: Counter) => count2(counter) )
+    ),
+    { dispatch: true }
+  );
+
+  count2$ = createEffect(() =>
+
+    this.actions$.pipe(
+      ofType(count2),
+      switchMap((counterArg: Counter): Observable<Counter> => {
+
+        this.store.update( (state: CounterState): CounterState =>
+          ( { ...state, ...{ c2: state.c2 + counterArg.c2 } }));
+
+        this.counterService.log('Side effect of count2');
+
+        return of(counterArg);
+      }),
+      map( (counter: Counter) => count3(counter) )
+    ),
+    { dispatch: true }
+  );
+
+  count3$ = createEffect(() =>
+
+    this.actions$.pipe(
+      ofType(count3),
+      switchMap((counterArg: Counter): Observable<Counter> => {
+
+        this.store.update( (state: CounterState): CounterState =>
+          ( { ...state, ...{ c3: state.c3 + counterArg.c3 } }));
+
+        this.counterService.log('Side effect of count3');
+
+        return of(counterArg);
+      }),
+    ),
+    { dispatch: false }
+  );
+
+  constructor(
+    private actions$: Actions,
+    private store: CounterStore,
+    private counterService: CounterService,
+  ) {}
+}
+```
+**NOTE!**
+
+The parameter `dispatch` of the last effect is set to `false`. If you set the last effect to `true`, that effect will endlessly dispatch itself usually causing the app to stall an crash the browser.
+### Setup spec
+```ts title="counter.service.spec.ts"
+import { TestBed } from '@angular/core/testing';
+import { AkitaNgEffectsModule } from '@datorama/akita-ng-effects';
+import { CounterEffects } from './counter.effect';
+import { CounterService } from './counter.service';
+import { CounterState, CounterStore } from './counter.store';
+
+describe('CounterService', () => {
+  let counterService: CounterService;
+  let counterStore: CounterStore;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        CounterService,
+        CounterStore,
+      ],
+      imports: [
+        AkitaNgEffectsModule.forRoot([CounterEffects]),
+      ]
+    });
+
+    counterService = TestBed.inject(CounterService);
+    spyOn(counterService, 'log').and.returnValue();
+    counterStore = TestBed.inject(CounterStore);
+  });
+
+  it('should be created', () => {
+    expect(counterService).toBeDefined();
+  });
+
+  it('should get the counted state', () => {
+    counterService.count();
+    counterService.getCountersValues$().subscribe(
+      (state: CounterState) => expect(state).toEqual(
+        {
+          c1: 1,
+          c2: 2,
+          c3: 3,
+        } as CounterState
+      )
+    )
+  });
+
+  it('should produce side effects', () => {
+    counterService.count();
+    expect(counterService.log).toHaveBeenCalledTimes(3);
+  });
+
+});
+```
+That's it.
+
+## Simple Example: a counter with logging and an HTTP-Request as side effects
+Let's add an HTTP-Request to the first effect. We use the previous example modifying the following files as the following:
+
+```ts title="counter.effect.ts"
+  count1$ = createEffect(() =>
+
+    this.actions$.pipe(
+      ofType(count1),
+      switchMap((counterArg: Counter): Observable<Counter> => {
+
+        this.store.update( (state: CounterState): CounterState =>
+          ( { ...state, ...{ c1: state.c1 + counterArg.c1 } }));
+
+        this.counterService.log('Side effect of count1');
+
+        this.httpClient.get('assets/data.json').pipe(
+          tap((data: unknown) => {
+            this.counterService.log(data);
+            this.actions$.dispatch(count2(counterArg));
+          }),
+        ).subscribe();
+
+        return of();
+      }),
+    ),
+    { dispatch: false }
+  );
+```
+**NOTE!**
+
+The parameter `dispatch` of this effect is set to `false` although it's the first effect in the chain. This is because we dispatch on subscribe instead of doing it directly as in the previous example. Also note that we have to subscribe to the request. Otherwise this effect cannot be dispatched multiple times.
+
+Now replace the spec with the content below.
+```ts title="counter.service.spec.ts"
+import { HttpRequest } from '@angular/common/http';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { AkitaNgEffectsModule } from '@datorama/akita-ng-effects';
+import { CounterEffects } from './counter.effect';
+import { CounterService } from './counter.service';
+import { CounterState, CounterStore } from './counter.store';
+
+describe('CounterService', () => {
+  let counterService: CounterService;
+  let counterStore: CounterStore;
+  let httpMock: HttpTestingController;
+
+  const flushHttpRequest = () =>
+    httpMock.expectOne(
+      (req: HttpRequest<unknown>) => req.url.includes('data.json')
+    ).flush({p1: 'v1', p2: 'v2'});
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        CounterService,
+        CounterStore,
+      ],
+      imports: [
+        AkitaNgEffectsModule.forRoot([CounterEffects]),
+        HttpClientTestingModule,
+      ]
+    });
+
+    counterService = TestBed.inject(CounterService);
+    spyOn(counterService, 'log').and.returnValue();
+    counterStore = TestBed.inject(CounterStore);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  it('should be created', () => {
+    expect(counterService).toBeDefined();
+  });
+
+  it('should get the counted state', () => {
+    counterService.count();
+    flushHttpRequest();
+
+    counterService.getCountersValues$().subscribe(
+      (state: CounterState) => expect(state).toEqual(
+        {
+          c1: 1,
+          c2: 2,
+          c3: 3,
+        } as CounterState
+      )
+    )
+  });
+
+  it('should produce side effects', () => {
+    counterService.count();
+    flushHttpRequest();
+    expect(counterService.log).toHaveBeenCalledTimes(4);
+  });
+
+});
+```
+For the sake of completeness add also this file:
+```json title="src/assets/data.json"
+{
+  "p1": "v1",
+  "p2": "v2"
+}
+```
+That's it.
+## Advanced Example
+### Setup Actions
 
 An action always holds a type property and an optional payload.
 
@@ -47,8 +387,7 @@ export const loadMainNavigationSuccess = createAction(
 );
 ```
 
-## Setup Effects
-
+### Setup Effects
 You can use the actions to act upon any action event:
 
 ```ts title="navigation.effect.ts"
@@ -81,9 +420,6 @@ export class NavigationEffects {
   );
 }
 ```
-
-#### The parameter `dispatch`
-This parameter dictates if the effect can dispatch an action. Set `true` if you want the effect to dispatch an action. Set to `false` or omit if the effect should not dispatch any action.
 
 ### Possible use case
 
