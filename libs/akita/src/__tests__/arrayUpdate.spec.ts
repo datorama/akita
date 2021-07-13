@@ -99,6 +99,32 @@ describe('arrayUpdate', () => {
     store.remove();
   });
 
+  it('should update many by predicate', () => {
+    const article: Article = {
+      id: 1,
+      title: '',
+      comments: [
+        { id: 1, text: 'comment' },
+        { id: 2, text: 'comment2' },
+        { id: 3, text: 'comment3' },
+      ],
+    };
+
+    store.add(article);
+
+    store.update(1, (state) => ({
+      comments: arrayUpdate(state.comments, [
+        { id: 1, text: 'updated1' },
+        { id: 3, text: 'updated3' },
+      ]),
+    }));
+
+    expect(store._value().entities[1].comments[0].text).toBe('updated1');
+    expect(store._value().entities[1].comments[1].text).toBe('comment2');
+    expect(store._value().entities[1].comments[2].text).toBe('updated3');
+    store.remove();
+  });
+
   it('should update support a different id key', () => {
     const article: Article = {
       id: 1,
